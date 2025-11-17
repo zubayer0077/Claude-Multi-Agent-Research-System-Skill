@@ -2,7 +2,7 @@
 name: multi-agent-researcher
 description: Conduct comprehensive research on any topic by coordinating 2-4 specialized researcher agents in parallel, then synthesizing findings into a detailed report via mandatory report-writer agent delegation
 allowed-tools: Task, Read, Glob, TodoWrite
-version: 2.0.0
+version: 2.1.1
 ---
 
 # Multi-Agent Research Coordinator
