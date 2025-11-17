@@ -114,17 +114,18 @@ The system includes automatic first-time setup that runs when you start Claude C
 
 1. **Clone repository**:
 \`\`\`bash
-git clone <repo-url>
-cd <repo-name>
+git clone https://github.com/ahmedibrahim085/Claude-Multi-Agent-Research-System-Skill.git
+cd Claude-Multi-Agent-Research-System-Skill
 \`\`\`
 
-2. **Start Claude Code** - The SessionStart hook will automatically:
-   - Create \`settings.local.json\` from template
-   - Create required directories
-   - Initialize session logging
-   - Show helpful warnings if configuration is needed
+2. **Start Claude Code** in the project directory
 
-That's it! The system is ready to use.
+The SessionStart hook will automatically:
+- Create required directories (if missing)
+- Initialize session logging
+- Show setup status and any warnings
+
+**Note**: Hooks are pre-configured in `.claude/settings.json`. If you want to customize settings, copy `.claude/settings.template.json` to `.claude/settings.local.json` and modify it.
 
 ### Advanced Setup (Optional Customization)
 
@@ -144,14 +145,15 @@ The setup script allows you to:
 
 ### Manual Configuration
 
-If you prefer manual setup:
+If you want to customize hooks or permissions:
 
-1. **Copy settings template**:
+1. **(Optional) Create local settings override**:
 \`\`\`bash
 cp .claude/settings.template.json .claude/settings.local.json
+# Edit .claude/settings.local.json to customize
 \`\`\`
 
-2. **(Optional) Customize paths in \`.claude/config.json\`**:
+2. **Customize paths in \`.claude/config.json\`**:
 \`\`\`json
 {
   "paths": {
