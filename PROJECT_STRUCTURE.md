@@ -17,51 +17,87 @@ This document describes the canonical file organization for the Claude Multi-Age
 ## Directory Structure
 
 ```
-.
+Claude-Multi-Agent-Research-System-Skill/
+│
 ├── .claude/
-│   ├── config.json                    # Project configuration (logs path, research settings)
-│   ├── CLAUDE.md                      # Project-specific instructions
+│   ├── config.json                           # Project configuration (logs, research settings)
+│   ├── CLAUDE.md                             # Project-specific instructions
+│   ├── settings.local.json                   # (gitignored - user settings)
+│   ├── state/                                # (gitignored - session state)
+│   │
 │   └── skills/
-│       ├── skill-rules.json           # Skill activation rules (both skills)
-│       ├── multi-agent-researcher/    # Research orchestration skill
-│       │   ├── SKILL.md               # Orchestrator logic
-│       │   ├── agents/
-│       │   │   ├── researcher.md      # Web research agent
-│       │   │   └── report-writer.md   # Synthesis agent
-│       │   └── README.md
-│       └── spec-workflow-orchestrator/ # Planning workflow skill ✨ NEW
-│           ├── SKILL.md                # Orchestrator logic
-│           ├── agents/
-│           │   ├── spec-analyst.md     # Requirements analysis
-│           │   ├── spec-architect.md   # Architecture design
-│           │   └── spec-planner.md     # Task breakdown
+│       ├── skill-rules.json                  # Skill activation rules (BOTH skills)
+│       │
+│       ├── multi-agent-researcher/           # Research Skill
+│       │   ├── SKILL.md                      # Research orchestrator
+│       │   ├── README.md
+│       │   └── agents/                       # ⭐ RESEARCH AGENTS
+│       │       ├── researcher.md             # Web research agent
+│       │       └── report-writer.md          # Synthesis agent
+│       │
+│       └── spec-workflow-orchestrator/       # Planning Skill ✨ NEW
+│           ├── SKILL.md                      # Planning orchestrator
+│           ├── agents/                       # ⭐ PLANNING AGENTS
+│           │   ├── spec-analyst.md           # Requirements analysis
+│           │   ├── spec-architect.md         # Architecture design
+│           │   └── spec-planner.md           # Task breakdown
 │           └── docs/reference/
 │               ├── README.md
 │               └── spec-orchestrator-original.md  # Archived reference
 │
 ├── docs/
-│   ├── plans/                         # Planning documents (gitignored)
-│   │   ├── completed/                 # Phase 2 complete
+│   ├── plans/                                # Planning documents (gitignored)
+│   │   ├── completed/                        # Phase 2 complete
 │   │   │   ├── FOCUSED_IMPLEMENTATION_PLAN.md
 │   │   │   ├── SPEC_ORCHESTRATOR_TO_SKILL_MAPPING.md
 │   │   │   └── CONTENT_MERGE_ANALYSIS.md
-│   │   └── archive/                   # Old verbose plans
+│   │   └── archive/                          # Old verbose plans
 │   │       ├── Spec_Workflow_Implementation_Plan_FINAL_v2.0.md
-│   │       └── ...
-│   ├── analysis/                      # Analysis documents (gitignored)
-│   └── adrs/                          # Architecture Decision Records (NOT gitignored)
+│   │       ├── COMPLETE_PHASES_3_TO_7.md
+│   │       ├── PHASES_6_AND_7_FINAL.md
+│   │       └── Spec_Workflow_Implementation_Plan_v2.0_MERGED.md
+│   │
+│   ├── analysis/                             # Analysis documents (gitignored)
+│   │   ├── Spec_Workflow_Implementation_Guide_20251119-002049.md
+│   │   ├── Conversion_of_Spec_Workflow_System_to_Skill-Based_Architecture_Analysis_20251119-002049.md
+│   │   ├── Inspirational_Projects_Analysis_and_Architecture_Recommendations_20251119.md
+│   │   └── Plan_Dependency_Analysis_Ultra_Deep.md
+│   │
+│   └── adrs/                                 # Architecture Decision Records (NOT gitignored)
+│       └── (empty - for future project ADRs)
 │
 ├── files/
-│   ├── research_notes/                # Researcher agent outputs (gitignored)
-│   └── reports/                       # Synthesized research reports (gitignored)
+│   ├── research_notes/                       # Researcher agent outputs (gitignored)
+│   │   ├── README.md                         # Placeholder only
+│   │   └── *.md                              # Individual research notes
+│   └── reports/                              # Synthesized research reports (gitignored)
+│       ├── README.md                         # Placeholder only
+│       └── *.md                              # Final reports
 │
-├── logs/                              # ALL session logs (gitignored, 1,700+ files)
+├── logs/                                     # ALL session logs (gitignored, 1,700+ files)
+│   ├── session_*_transcript.txt
+│   ├── session_*_tool_calls.jsonl
+│   └── ...
 │
-├── .gitignore                         # Defines what's tracked vs. private
-├── PROJECT_STRUCTURE.md               # This file
-└── README.md                          # Project overview
-
+├── .gitignore                                # Privacy & logs configuration
+├── PROJECT_STRUCTURE.md                      # This file
+└── README.md                                 # Project overview
 ```
+
+---
+
+## ⭐ Agents Summary (5 Total)
+
+### Research Skill (2 agents)
+Location: `.claude/skills/multi-agent-researcher/agents/`
+- **researcher.md** - Web research agent (WebSearch, Write, Read)
+- **report-writer.md** - Synthesis agent (Read, Glob, Write)
+
+### Planning Skill (3 agents)
+Location: `.claude/skills/spec-workflow-orchestrator/agents/`
+- **spec-analyst.md** - Requirements gathering & analysis
+- **spec-architect.md** - Architecture design & ADR creation
+- **spec-planner.md** - Task breakdown & risk assessment
 
 ---
 
