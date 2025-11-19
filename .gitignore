@@ -16,6 +16,11 @@ files/reports/*.md
 !files/research_notes/README.md
 !files/reports/README.md
 
+# Privacy: Exclude private analysis and planning docs
+docs/analysis/
+docs/plans/
+!docs/adrs/
+
 # Python
 *.pyc
 __pycache__/
