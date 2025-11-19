@@ -1,1977 +1,1373 @@
-# Implementation Tasks: TaskFlow
+# Session Log Viewer - Implementation Tasks
 
-## Overview
-
-**Total Tasks**: 42
-**Estimated Effort**: 280-360 hours (8-12 weeks for solo developer, 4-6 weeks for 2-person team)
-**Critical Path**: TASK-001 → TASK-002 → TASK-003 → TASK-007 → TASK-011 → TASK-015 → TASK-019 → TASK-023 → TASK-027 → TASK-031
-**Parallel Work Streams**: 3 (Backend API, Frontend UI, Infrastructure)
-
-### Phase Summary
-
-| Phase | Duration | Effort (hours) | Parallel Streams |
-|-------|----------|----------------|------------------|
-| Phase 1: Project Setup & Infrastructure | 3 days | 24-32 | 1 |
-| Phase 2: Authentication Module | 5 days | 40-48 | 2 (after API contract) |
-| Phase 3: Core Task CRUD | 7 days | 56-72 | 2 (parallel) |
-| Phase 4: Task Organization Features | 8 days | 64-80 | 2 (parallel) |
-| Phase 5: Search & Filtering | 5 days | 40-48 | 2 (parallel) |
-| Phase 6: UI Polish & Testing | 7 days | 56-80 | 2 (parallel) |
-| **Total** | **35 days** | **280-360 hours** | |
-
-### Work Stream Distribution
-
-- **Backend API**: 18 tasks (144-176 hours)
-- **Frontend UI**: 17 tasks (112-144 hours)
-- **Infrastructure & DevOps**: 7 tasks (24-40 hours)
+**Project**: Claude Multi-Agent Research System - Session Log Viewer
+**Version**: 1.0
+**Date**: 2025-11-19
+**Status**: Implementation Plan Complete
 
 ---
 
-## Phase 1: Project Setup & Infrastructure
+## Executive Summary
 
-**Duration**: 3 days
-**Effort**: 24-32 hours
-**Goal**: Establish development environment, database schema, and deployment pipeline
+This document provides a comprehensive breakdown of implementation tasks for the Session Log Viewer web application. The project is structured into **4 phases** aligned with the MVP-first approach, with **68 atomic tasks** totaling approximately **22-25 person-days** of effort for a single developer.
+
+### Overview
+
+| Metric | Value |
+|--------|-------|
+| **Total Tasks** | 68 tasks |
+| **Estimated Effort** | 22-25 person-days (176-200 hours) |
+| **Critical Path** | T1.1 → T1.2 → T1.3 → T1.8 → T2.1 → T3.1 |
+| **Parallel Streams** | 3 streams (backend, frontend, testing) |
+| **Implementation Phases** | 4 phases (MVP, Filtering, Analytics, Optimization) |
+
+### Critical Path Tasks
+
+The following tasks block the most downstream work and should be prioritized:
+
+1. **T1.1**: Project setup and directory structure (blocks all)
+2. **T1.2**: SQLite database schema creation (blocks backend)
+3. **T1.3**: Log parser for transcript.txt (blocks indexing)
+4. **T1.8**: FastAPI server with basic endpoints (blocks frontend integration)
+5. **T2.1**: Implement FTS5 full-text search (blocks search features)
+6. **T3.1**: Analytics data aggregation (blocks dashboard)
+
+### Parallel Development Streams
+
+The project can be developed in parallel across 3 streams:
+
+| Stream | Focus | Can Start After | Example Tasks |
+|--------|-------|-----------------|---------------|
+| **Backend** | Python server, database, parsing | T1.1 | T1.2, T1.3, T1.4, T1.5, T2.1 |
+| **Frontend** | HTML/CSS/JS UI components | T1.1 | T1.9, T1.10, T1.11, T1.12 |
+| **Testing** | Unit tests, integration tests | T1.3 (parser), T1.8 (API) | T1.14, T2.7, T3.8 |
 
 ---
 
-### TASK-001: Initialize Project Repository
-**ID**: TASK-001
-**Complexity**: S (Small)
-**Effort**: 4 hours
+## Implementation Phases
+
+### Phase 1: MVP - Core Functionality (Weeks 1-2)
+**Goal**: Basic log viewing and keyword search
+**Effort**: 10-12 person-days
+
+**Deliverables**:
+- Working Python FastAPI server
+- SQLite database with session metadata
+- Log file parsing (transcript.txt, tool_calls.jsonl)
+- Session list view with pagination
+- Session detail view with transcript display
+- Basic keyword search (SQLite FTS5)
+- Local HTTP server startup script
+
+**Success Criteria**:
+- User can browse all sessions
+- User can search by keyword in < 2s
+- User can view full transcript and tool calls
+- Application loads in < 3s for 1,000 sessions
+
+---
+
+### Phase 2: Filtering & Search (Week 3)
+**Goal**: Multi-dimensional filtering (tools, agents, skills)
+**Effort**: 5-6 person-days
+
+**Deliverables**:
+- Filter by tool name (dropdown UI)
+- Filter by agent name (dropdown UI)
+- Filter by skill name (dropdown UI)
+- Combined filters (AND logic)
+- In-memory inverted index for fast filtering
+- Filter panel sidebar in UI
+
+**Success Criteria**:
+- Filters apply in < 500ms
+- User can combine multiple filters
+- Filter dropdowns show usage counts
+- Filter state persists in localStorage
+
+---
+
+### Phase 3: Analytics & Topics (Week 4)
+**Goal**: Cross-session topic tracking and analytics dashboard
+**Effort**: 5-6 person-days
+
+**Deliverables**:
+- Analytics dashboard with charts (Chart.js)
+- Topic creation and tagging system
+- Topic detail view with session list
+- Topic suggestion algorithm (keyword similarity)
+- Export functionality (CSV, Markdown, JSON)
+- Statistics aggregation (tool usage, agent counts)
+
+**Success Criteria**:
+- User can create and manage topics
+- Dashboard shows key statistics
+- Export generates valid files
+- Topic suggestions are relevant (>70% accuracy)
+
+---
+
+### Phase 4: Optimization & Polish (Week 5)
+**Goal**: Performance tuning and production readiness
+**Effort**: 2-3 person-days
+
+**Deliverables**:
+- Virtual scrolling for large session lists
+- Incremental indexing (only parse new files)
+- Performance profiling and optimization
+- Error handling and logging improvements
+- Documentation (README, API docs)
+- End-to-end testing suite
+
+**Success Criteria**:
+- Handles 10,000+ sessions gracefully
+- Memory usage < 500MB
+- Initial load < 3s (cold start with indexing)
+- All tests pass
+
+---
+
+## Phase 1: MVP - Core Functionality
+
+### T1.1: Project Setup and Directory Structure
+**Complexity**: Low
+**Effort**: 2 hours
 **Dependencies**: None
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Any developer
+**Priority**: Critical
 
-**Description**: Set up monorepo structure with frontend and backend projects, initialize version control, and configure development tools.
+**Description**: Initialize project structure, create directory tree, set up Python virtual environment, and configure gitignore.
 
 **Subtasks**:
-- [ ] Create Git repository with `.gitignore` for Node.js + TypeScript
-- [ ] Initialize pnpm workspace with root `package.json`
-- [ ] Create folder structure: `/frontend`, `/api`, `/docs`, `/scripts`
-- [ ] Set up ESLint + Prettier for both frontend and backend
-- [ ] Configure Husky pre-commit hooks for linting
-- [ ] Create initial `README.md` with setup instructions
-- [ ] Add MIT license file
+- [ ] Create `web-viewer/` directory at project root
+- [ ] Initialize Python virtual environment
+- [ ] Create `requirements.txt` with dependencies (FastAPI, uvicorn, orjson, python-dateutil)
+- [ ] Create directory structure: `static/`, `src/`, `data/`, `tests/`, `scripts/`
+- [ ] Create subdirectories: `static/css/`, `static/js/`, `static/js/components/`, `static/lib/`
+- [ ] Add `data/` and `__pycache__/` to `.gitignore`
+- [ ] Create empty `README.md` stub
 
 **Acceptance Criteria**:
-- [ ] Repository cloned and all team members can run `pnpm install` successfully
-- [ ] Pre-commit hooks block commits with linting errors
-- [ ] Folder structure matches architecture document specification
-- [ ] README contains clear setup steps for local development
-- [ ] `pnpm lint` runs successfully on both frontend and backend
+- GIVEN project repository WHEN web-viewer/ is created THEN directory structure matches architecture document
+- WHEN running `pip install -r requirements.txt` THEN all dependencies install without errors
+- WHEN running `git status` THEN data/ directory is not tracked
 
 **Technical Notes**:
-- Use pnpm workspaces for monorepo management
-- Configure VS Code settings in `.vscode/settings.json` for consistent formatting
-- Pin Node.js version in `.nvmrc` (v20.x LTS)
-
-**Files to Create**:
-- `.gitignore`, `package.json`, `pnpm-workspace.yaml`
-- `.eslintrc.js`, `.prettierrc.js`, `.husky/pre-commit`
-- `README.md`, `LICENSE`, `.nvmrc`
+- Use Python 3.8+ for compatibility
+- Pin dependency versions in requirements.txt
 
 ---
 
-### TASK-002: Backend API Project Setup
-**ID**: TASK-002
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-001
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Backend developer
-
-**Description**: Initialize Express + TypeScript backend with Prisma ORM, configure environment variables, and create basic server structure.
-
-**Subtasks**:
-- [ ] Initialize TypeScript project in `/api` with `tsconfig.json`
-- [ ] Install dependencies: express, prisma, zod, bcrypt, jsonwebtoken, cors, helmet, express-rate-limit
-- [ ] Install dev dependencies: @types/node, @types/express, tsx, vitest
-- [ ] Create Express server entry point (`src/server.ts`)
-- [ ] Configure environment variables with `.env.example` template
-- [ ] Set up Prisma with PostgreSQL datasource
-- [ ] Create basic folder structure: `/src/routes`, `/src/controllers`, `/src/middleware`, `/src/services`
-- [ ] Implement `/health` endpoint for uptime monitoring
-- [ ] Add scripts to `package.json`: `dev`, `build`, `start`, `test`
-
-**Acceptance Criteria**:
-- [ ] Server starts successfully with `pnpm dev` on port 3000
-- [ ] `GET /health` returns 200 OK with JSON response
-- [ ] Hot reload works when modifying TypeScript files
-- [ ] TypeScript compilation produces no errors
-- [ ] Prisma client generates successfully
-
-**Technical Notes**:
-- Use `tsx` for development (faster than ts-node)
-- Configure `tsconfig.json` with `strict: true` for maximum type safety
-- Environment variables validated at startup with Zod schema
-
-**Files to Create**:
-- `api/package.json`, `api/tsconfig.json`, `api/.env.example`
-- `api/src/server.ts`, `api/src/config/env.ts`
-- `api/prisma/schema.prisma`
-
----
-
-### TASK-003: Database Schema Implementation
-**ID**: TASK-003
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-002
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Backend developer
-
-**Description**: Define Prisma database schema for users, tasks, lists, tags, and relationships. Create initial migration and seed data.
-
-**Subtasks**:
-- [ ] Define `User` model with email, password_hash, timestamps
-- [ ] Define `Task` model with all required fields (title, description, status, priority, due_date, etc.)
-- [ ] Define `List` model for task organization
-- [ ] Define `Tag` and `TaskTag` junction table for many-to-many relationship
-- [ ] Add enums for `Status` (NOT_STARTED, IN_PROGRESS, COMPLETED, BLOCKED)
-- [ ] Add enums for `Priority` (LOW, MEDIUM, HIGH, URGENT)
-- [ ] Create composite indexes: `[user_id, status]`, `[user_id, due_date]`, `[user_id, list_id]`
-- [ ] Add unique constraints: `User.email`, `List[user_id, name]`
-- [ ] Run initial migration: `prisma migrate dev --name init`
-- [ ] Create seed script (`prisma/seed.ts`) with sample data
-
-**Acceptance Criteria**:
-- [ ] `prisma migrate dev` runs without errors
-- [ ] All models defined according to architecture document
-- [ ] Indexes created for query optimization
-- [ ] Seed script creates 1 test user and 10 sample tasks
-- [ ] Prisma Studio opens and displays all tables correctly
-- [ ] Foreign key relationships properly configured with cascade/set null
-
-**Technical Notes**:
-- Use UUIDs for all primary keys (`@default(uuid())`)
-- Map Prisma field names to snake_case in database (`@map`)
-- Use `@updatedAt` for automatic timestamp updates
-- Cascade delete for user → tasks, set null for list → tasks
-
-**Files to Create**:
-- `api/prisma/schema.prisma`
-- `api/prisma/seed.ts`
-- `api/prisma/migrations/YYYYMMDDHHMMSS_init/migration.sql`
-
----
-
-### TASK-004: Frontend Project Setup
-**ID**: TASK-004
-**Complexity**: M (Medium)
-**Effort**: 5 hours
-**Dependencies**: TASK-001
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Frontend developer
-
-**Description**: Initialize React + TypeScript frontend with Vite, configure TailwindCSS, and set up routing and state management.
-
-**Subtasks**:
-- [ ] Create Vite + React + TypeScript project in `/frontend`
-- [ ] Install dependencies: react, react-dom, react-router-dom, zustand, @tanstack/react-query, axios, zod
-- [ ] Install dev dependencies: @types/react, tailwindcss, postcss, autoprefixer, vitest, @testing-library/react
-- [ ] Configure TailwindCSS with custom color palette
-- [ ] Set up React Router with basic route structure
-- [ ] Configure Zustand store for auth state
-- [ ] Create Axios instance with base URL and interceptors
-- [ ] Set up React Query provider with dev tools
-- [ ] Create basic app layout component
-- [ ] Add scripts: `dev`, `build`, `preview`, `test`
-
-**Acceptance Criteria**:
-- [ ] App runs on `http://localhost:5173` with `pnpm dev`
-- [ ] TailwindCSS styles apply correctly (test with utility classes)
-- [ ] React Router navigation works between placeholder pages
-- [ ] React Query DevTools accessible in development mode
-- [ ] TypeScript compilation produces no errors
-- [ ] Hot module replacement (HMR) works for React components
-
-**Technical Notes**:
-- Use Vite 5 for faster build times
-- Configure path aliases in `vite.config.ts` (`@/` → `/src`)
-- Set up TailwindCSS with mobile-first breakpoints
-- Configure Axios interceptors for auth token injection
-
-**Files to Create**:
-- `frontend/package.json`, `frontend/tsconfig.json`, `frontend/vite.config.ts`
-- `frontend/tailwind.config.js`, `frontend/postcss.config.js`
-- `frontend/src/main.tsx`, `frontend/src/App.tsx`
-- `frontend/src/services/api.ts`, `frontend/src/store/authStore.ts`
-
----
-
-### TASK-005: Development Environment with Docker Compose
-**ID**: TASK-005
-**Complexity**: M (Medium)
-**Effort**: 4 hours
-**Dependencies**: TASK-002, TASK-004
-**Priority**: High (Developer Experience)
-**Assignee Profile**: Backend developer or DevOps-minded developer
-
-**Description**: Create Docker Compose configuration for local development with PostgreSQL, Redis, and hot-reload for API and frontend.
-
-**Subtasks**:
-- [ ] Create `docker-compose.dev.yml` with services: postgres, redis, api, frontend
-- [ ] Configure PostgreSQL service with volume persistence
-- [ ] Configure Redis service (alpine image)
-- [ ] Set up API service with volume mounts for hot reload
-- [ ] Set up frontend service with Vite dev server
-- [ ] Create `.env.docker` with database and Redis URLs
-- [ ] Write `Dockerfile.dev` for API with development dependencies
-- [ ] Write `Dockerfile.dev` for frontend with Vite
-- [ ] Add health checks for postgres and redis
-- [ ] Document startup process in README
-
-**Acceptance Criteria**:
-- [ ] `docker-compose -f docker-compose.dev.yml up` starts all services successfully
-- [ ] API accessible at `http://localhost:3000` from host machine
-- [ ] Frontend accessible at `http://localhost:5173` from host machine
-- [ ] Database persists data between container restarts
-- [ ] Hot reload works for both API and frontend when files change
-- [ ] `docker-compose down` cleans up containers properly
-
-**Technical Notes**:
-- Use named volumes for database persistence
-- Bind mount source code directories for hot reload
-- Configure depends_on with health checks to ensure startup order
-- Use PostgreSQL 14+ and Redis 7 alpine images
-
-**Files to Create**:
-- `docker-compose.dev.yml`
-- `api/Dockerfile.dev`, `frontend/Dockerfile.dev`
-- `.env.docker`
-- `scripts/dev-start.sh` (convenience script)
-
----
-
-### TASK-006: CI/CD Pipeline Setup
-**ID**: TASK-006
-**Complexity**: M (Medium)
-**Effort**: 5 hours
-**Dependencies**: TASK-002, TASK-004
-**Priority**: Medium (Can be done in parallel with feature development)
-**Assignee Profile**: Developer with CI/CD experience
-
-**Description**: Configure GitHub Actions workflows for automated testing, linting, and deployment to staging environment.
-
-**Subtasks**:
-- [ ] Create `.github/workflows/test.yml` for running tests on PR
-- [ ] Add lint job to workflow (ESLint + Prettier check)
-- [ ] Add unit test job for backend (Vitest)
-- [ ] Add unit test job for frontend (Vitest + React Testing Library)
-- [ ] Configure test coverage reporting
-- [ ] Create `.github/workflows/deploy-staging.yml` for staging deployment
-- [ ] Set up deployment to Railway.app or DigitalOcean App Platform
-- [ ] Configure environment secrets in GitHub repository settings
-- [ ] Add status badge to README
-- [ ] Test workflow by creating a test PR
-
-**Acceptance Criteria**:
-- [ ] Test workflow runs on every PR and main branch push
-- [ ] Workflow fails if linting errors or test failures occur
-- [ ] Coverage report posted as comment on PR (optional)
-- [ ] Deployment workflow triggers on push to `develop` branch
-- [ ] Staging environment updates automatically after successful deployment
-- [ ] Status badge displays current build status in README
-
-**Technical Notes**:
-- Use GitHub Actions cache for faster pnpm installs
-- Run frontend and backend tests in parallel jobs
-- Set Node.js version to 20.x in workflow
-- Use secrets for deployment tokens and database URLs
-
-**Files to Create**:
-- `.github/workflows/test.yml`
-- `.github/workflows/deploy-staging.yml`
-- `.github/workflows/lighthouse.yml` (optional performance testing)
-
----
-
-### TASK-007: Shared TypeScript Types Package
-**ID**: TASK-007
-**Complexity**: S (Small)
+### T1.2: SQLite Database Schema Creation
+**Complexity**: Medium
 **Effort**: 3 hours
-**Dependencies**: TASK-003
-**Priority**: High (Enables type safety across frontend/backend)
-**Assignee Profile**: Backend developer
+**Dependencies**: T1.1
+**Priority**: Critical
 
-**Description**: Create shared TypeScript types for API contracts, DTOs, and domain models to ensure type safety between frontend and backend.
-
-**Subtasks**:
-- [ ] Generate Prisma types: `prisma generate`
-- [ ] Create `/api/src/types/api.ts` for request/response types
-- [ ] Define `CreateTaskDTO`, `UpdateTaskDTO`, `TaskFilters` interfaces
-- [ ] Define `PaginatedResponse<T>` generic type
-- [ ] Define `ApiError` interface for error responses
-- [ ] Export Prisma-generated types (`Task`, `User`, `List`, `Tag`)
-- [ ] Create Zod schemas matching TypeScript types for validation
-- [ ] Copy shared types to `/frontend/src/types/` (or use symlink)
-- [ ] Configure TypeScript path resolution for shared types
-
-**Acceptance Criteria**:
-- [ ] Prisma client types available in backend code
-- [ ] DTO interfaces used in API route handlers
-- [ ] Frontend can import and use shared types
-- [ ] Zod schemas validate runtime data against TypeScript types
-- [ ] No type errors when building frontend or backend
-- [ ] IntelliSense works for shared types in both projects
-
-**Technical Notes**:
-- Use Zod's `.infer<>` to derive TypeScript types from schemas
-- Consider using a dedicated `/shared` package in monorepo (optional)
-- Export enums for `TaskStatus`, `TaskPriority` from Prisma schema
-
-**Files to Create**:
-- `api/src/types/api.ts`
-- `api/src/schemas/task.schema.ts`
-- `frontend/src/types/api.ts` (copied or symlinked)
-
----
-
-## Phase 2: Authentication Module
-
-**Duration**: 5 days
-**Effort**: 40-48 hours
-**Goal**: Implement secure user registration, login, logout with JWT authentication
-
----
-
-### TASK-008: Authentication Service (Backend)
-**ID**: TASK-008
-**Complexity**: L (Large)
-**Effort**: 8 hours
-**Dependencies**: TASK-007
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Senior backend developer
-
-**Description**: Implement authentication service with JWT token generation, password hashing, and user management business logic.
+**Description**: Implement SQLite database schema with tables for sessions, tool_calls, transcripts_fts, topics, and session_topics.
 
 **Subtasks**:
-- [ ] Create `/api/src/services/auth.service.ts`
-- [ ] Implement `registerUser()`: validate email uniqueness, hash password (bcrypt 12 rounds), create user record
-- [ ] Implement `loginUser()`: verify credentials, check account lock status, generate JWT
-- [ ] Implement `generateToken()`: create JWT with user_id, email, 24h expiration
-- [ ] Implement `verifyToken()`: validate JWT signature and expiration
-- [ ] Create password validation function (min 8 chars, uppercase, lowercase, number)
-- [ ] Implement account lockout logic: 5 failed attempts → 15 min lock
-- [ ] Use Redis for storing failed login attempts counter
-- [ ] Add error handling: `UserAlreadyExistsError`, `InvalidCredentialsError`, `AccountLockedError`
-- [ ] Write unit tests for all service methods (80% coverage target)
+- [ ] Create `src/database.py` module
+- [ ] Implement `init_database()` function with CREATE TABLE statements
+- [ ] Create `sessions` table with columns: session_id (PK), start_time, duration_seconds, tool_call_count, unique_tools, unique_agents, has_errors, transcript_path, tool_calls_path, file_mtime
+- [ ] Create `tool_calls` table with columns: id (PK), session_id (FK), timestamp, agent, tool, input_json, output_json, success, duration_ms
+- [ ] Create FTS5 virtual table `transcripts_fts` with columns: session_id UNINDEXED, content
+- [ ] Create `topics` table with columns: topic_id (PK), name (UNIQUE), description, created_at
+- [ ] Create `session_topics` junction table with columns: session_id (FK), topic_id (FK), tagged_at
+- [ ] Create indexes on foreign keys and frequently queried columns (tool, agent, session_id)
+- [ ] Enable WAL mode for better concurrency
+- [ ] Add FOREIGN KEY constraints with CASCADE DELETE
 
 **Acceptance Criteria**:
-- [ ] User registration creates new user with hashed password
-- [ ] Duplicate email registration returns 400 error
-- [ ] Login with valid credentials returns JWT token
-- [ ] Login with invalid credentials returns generic error (no email/password hint)
-- [ ] Account locks after 5 failed login attempts within 15 minutes
-- [ ] JWT token contains correct payload (user_id, email, exp)
-- [ ] Token verification correctly identifies expired/invalid tokens
-- [ ] All unit tests pass with 80%+ coverage
+- GIVEN empty database WHEN `init_database()` is called THEN all tables and indexes are created
+- WHEN inserting test data THEN foreign key constraints are enforced
+- WHEN querying sessions by tool THEN index is used (verify with EXPLAIN QUERY PLAN)
 
 **Technical Notes**:
-- Use bcrypt with 12 salt rounds (~250ms computation)
-- JWT secret loaded from environment variable
-- Store failed attempts in Redis with 15-min TTL
-- Use UUIDs for JWT ID (jti) for future revocation support
-
-**Files to Create**:
-- `api/src/services/auth.service.ts`
-- `api/src/utils/jwt.ts`
-- `api/src/utils/password.ts`
-- `api/src/__tests__/services/auth.service.test.ts`
+- Use `sqlite3` module (built-in)
+- SQLite 3.32+ required for FTS5 support
+- Enable foreign keys: `PRAGMA foreign_keys = ON`
 
 ---
 
-### TASK-009: Authentication Middleware (Backend)
-**ID**: TASK-009
-**Complexity**: M (Medium)
+### T1.3: Log Parser - Parse transcript.txt
+**Complexity**: High
 **Effort**: 4 hours
-**Dependencies**: TASK-008
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Backend developer
+**Dependencies**: T1.1
+**Priority**: Critical
 
-**Description**: Create Express middleware for JWT authentication, authorization, and rate limiting on auth endpoints.
+**Description**: Implement streaming parser for transcript.txt files to extract session metadata and full content.
 
 **Subtasks**:
-- [ ] Create `/api/src/middleware/auth.middleware.ts`
-- [ ] Implement `authenticateToken()`: extract JWT from Authorization header, verify token, attach user to `req.user`
-- [ ] Implement `requireAuth()`: return 401 if not authenticated
-- [ ] Create rate limiting middleware using `express-rate-limit` + Redis store
-- [ ] Configure auth endpoint rate limit: 5 requests per 15 min per IP
-- [ ] Configure global API rate limit: 100 requests per min per user
-- [ ] Add CORS middleware with whitelist for allowed origins
-- [ ] Add helmet middleware for security headers
-- [ ] Write middleware unit tests
+- [ ] Create `src/log_parser.py` module
+- [ ] Implement `parse_transcript(file_path)` function
+- [ ] Extract session ID using regex: `Session ID: (session_\d{8}_\d{6})`
+- [ ] Extract start time using regex: `Started: ([\d-T:.]+)`
+- [ ] Read full transcript content (skip header section)
+- [ ] Handle file encoding (UTF-8 with fallback to Latin-1)
+- [ ] Implement error handling for missing or corrupted files
+- [ ] Return structured dict: `{'session_id', 'start_time', 'content', 'file_path', 'file_mtime'}`
+- [ ] Add logging for parsing warnings/errors
 
 **Acceptance Criteria**:
-- [ ] Protected routes return 401 Unauthorized if no token provided
-- [ ] Protected routes return 401 if token is expired or invalid
-- [ ] Valid token allows access to protected routes
-- [ ] `req.user` contains user ID and email after authentication
-- [ ] Rate limiting blocks requests after threshold exceeded
-- [ ] Rate limit headers included in response (X-RateLimit-*)
-- [ ] CORS allows requests only from whitelisted origins
-- [ ] Helmet sets security headers (CSP, HSTS, etc.)
+- GIVEN valid transcript.txt file WHEN `parse_transcript()` is called THEN correct session_id and start_time are extracted
+- GIVEN corrupted file WHEN parsing THEN function returns None and logs warning (does not crash)
+- GIVEN 1000-line transcript WHEN parsing THEN memory usage stays under 50MB
 
 **Technical Notes**:
-- Token format: `Authorization: Bearer <jwt_token>`
-- Use Redis for distributed rate limiting (supports multiple API instances)
-- Configure CORS to allow `http://localhost:5173` in development
-- Set `httpOnly`, `secure`, `sameSite` for cookies if using cookie-based auth
-
-**Files to Create**:
-- `api/src/middleware/auth.middleware.ts`
-- `api/src/middleware/rateLimit.middleware.ts`
-- `api/src/middleware/cors.middleware.ts`
-- `api/src/__tests__/middleware/auth.middleware.test.ts`
+- Use `with open()` for automatic file closing
+- Use streaming line-by-line reading for large files
+- Log warnings to stderr using Python logging module
 
 ---
 
-### TASK-010: Authentication Routes & Controllers (Backend)
-**ID**: TASK-010
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-009
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Backend developer
-
-**Description**: Create RESTful API endpoints for user registration, login, logout, and current user retrieval.
-
-**Subtasks**:
-- [ ] Create `/api/src/controllers/auth.controller.ts`
-- [ ] Implement `register()`: validate input with Zod, call auth service, return user + token
-- [ ] Implement `login()`: validate credentials, return user + token
-- [ ] Implement `logout()`: invalidate token (optional - client-side for stateless JWT)
-- [ ] Implement `getCurrentUser()`: return current user data from `req.user`
-- [ ] Create `/api/src/routes/auth.routes.ts`
-- [ ] Define routes: `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/auth/me`
-- [ ] Apply validation middleware with Zod schemas
-- [ ] Apply rate limiting to register and login endpoints
-- [ ] Mount auth routes in main server
-- [ ] Write integration tests with Supertest
-
-**Acceptance Criteria**:
-- [ ] `POST /api/v1/auth/register` creates user and returns 201 with token
-- [ ] `POST /api/v1/auth/login` authenticates user and returns 200 with token
-- [ ] `GET /api/v1/auth/me` returns current user data (requires auth)
-- [ ] Invalid input returns 400 with validation errors
-- [ ] Duplicate email returns 400 error
-- [ ] Invalid credentials return 401 error
-- [ ] Rate limiting enforced (429 status after threshold)
-- [ ] All integration tests pass
-
-**Technical Notes**:
-- Use Zod for request body validation
-- Return consistent error format across all endpoints
-- Log failed login attempts for security monitoring
-- Consider implementing refresh token endpoint (post-MVP)
-
-**Files to Create**:
-- `api/src/controllers/auth.controller.ts`
-- `api/src/routes/auth.routes.ts`
-- `api/src/schemas/auth.schema.ts`
-- `api/src/__tests__/routes/auth.routes.test.ts`
-
----
-
-### TASK-011: Authentication UI Components (Frontend)
-**ID**: TASK-011
-**Complexity**: L (Large)
-**Effort**: 8 hours
-**Dependencies**: TASK-010 (API contract defined)
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Frontend developer
-**Can Run in Parallel**: Yes (after API contract is defined)
-
-**Description**: Create React components for login and registration forms with validation, error handling, and loading states.
-
-**Subtasks**:
-- [ ] Create `/frontend/src/components/auth/LoginForm.tsx`
-- [ ] Create `/frontend/src/components/auth/RegisterForm.tsx`
-- [ ] Use React Hook Form for form state management
-- [ ] Implement client-side validation with Zod schemas (matching backend)
-- [ ] Style forms with TailwindCSS (centered card layout, responsive)
-- [ ] Add loading spinners during API requests
-- [ ] Display error messages from API responses
-- [ ] Implement password visibility toggle
-- [ ] Add "Remember me" checkbox (optional - extends JWT expiration)
-- [ ] Create success states (redirect to dashboard after login/register)
-- [ ] Add form accessibility (labels, ARIA attributes, keyboard navigation)
-- [ ] Write component tests with React Testing Library
-
-**Acceptance Criteria**:
-- [ ] Login form validates email format and required fields
-- [ ] Registration form enforces password requirements
-- [ ] Forms display loading state during API calls
-- [ ] API errors displayed to user in user-friendly format
-- [ ] Successful login/registration redirects to dashboard
-- [ ] Password toggle shows/hides password text
-- [ ] Forms are keyboard accessible (Tab, Enter navigation)
-- [ ] WCAG AA contrast ratios met for text and inputs
-- [ ] Component tests cover success and error scenarios
-
-**Technical Notes**:
-- Use React Hook Form with Zod resolver for validation
-- Store JWT token in Zustand auth store or localStorage
-- Use Axios interceptors to include token in subsequent requests
-- Consider social login UI (Google, GitHub) for post-MVP
-
-**Files to Create**:
-- `frontend/src/components/auth/LoginForm.tsx`
-- `frontend/src/components/auth/RegisterForm.tsx`
-- `frontend/src/components/shared/Input.tsx`
-- `frontend/src/components/shared/Button.tsx`
-- `frontend/src/__tests__/components/auth/LoginForm.test.tsx`
-
----
-
-### TASK-012: Auth State Management & Protected Routes (Frontend)
-**ID**: TASK-012
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-011
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Frontend developer
-
-**Description**: Implement Zustand store for authentication state and create protected route wrapper for authenticated pages.
-
-**Subtasks**:
-- [ ] Enhance `/frontend/src/store/authStore.ts` with login, logout, register actions
-- [ ] Implement `login()`: call API, store token, update user state
-- [ ] Implement `register()`: call API, store token, update user state
-- [ ] Implement `logout()`: clear token, reset user state
-- [ ] Implement `checkAuth()`: verify token validity on app load
-- [ ] Create `/frontend/src/components/auth/ProtectedRoute.tsx`
-- [ ] Redirect unauthenticated users to login page
-- [ ] Persist auth state to localStorage for session continuity
-- [ ] Configure Axios interceptor to include Authorization header
-- [ ] Handle 401 responses globally (auto-logout on token expiration)
-- [ ] Write tests for auth store actions
-
-**Acceptance Criteria**:
-- [ ] Login action stores JWT token and user data in Zustand store
-- [ ] Logout action clears all auth state
-- [ ] Auth state persists across browser refreshes (localStorage)
-- [ ] ProtectedRoute redirects to `/login` if user not authenticated
-- [ ] Axios includes `Authorization: Bearer <token>` header on all API requests
-- [ ] 401 responses trigger automatic logout and redirect to login
-- [ ] Auth state updates trigger re-render of dependent components
-- [ ] Store tests verify correct state updates
-
-**Technical Notes**:
-- Use Zustand persist middleware for localStorage sync
-- Validate token expiration client-side before API calls (optional optimization)
-- Consider implementing token refresh logic (post-MVP)
-- Use React Router's `Navigate` component for redirects
-
-**Files to Create**:
-- `frontend/src/store/authStore.ts` (enhanced)
-- `frontend/src/components/auth/ProtectedRoute.tsx`
-- `frontend/src/services/authService.ts`
-- `frontend/src/__tests__/store/authStore.test.ts`
-
----
-
-### TASK-013: Auth Pages & Routing (Frontend)
-**ID**: TASK-013
-**Complexity**: S (Small)
+### T1.4: Log Parser - Parse tool_calls.jsonl
+**Complexity**: High
 **Effort**: 4 hours
-**Dependencies**: TASK-012
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Frontend developer
+**Dependencies**: T1.1
+**Priority**: Critical
 
-**Description**: Create login and registration pages with routing, integrate auth forms, and implement post-auth redirects.
+**Description**: Implement JSONL parser for tool_calls.jsonl files to extract tool invocation records.
 
 **Subtasks**:
-- [ ] Create `/frontend/src/pages/LoginPage.tsx`
-- [ ] Create `/frontend/src/pages/RegisterPage.tsx`
-- [ ] Create `/frontend/src/pages/DashboardPage.tsx` (placeholder for now)
-- [ ] Configure React Router routes in App.tsx
-- [ ] Add route: `/login` → LoginPage
-- [ ] Add route: `/register` → RegisterPage
-- [ ] Add route: `/dashboard` → ProtectedRoute(DashboardPage)
-- [ ] Implement redirect logic: authenticated users accessing `/login` → `/dashboard`
-- [ ] Add navigation links between login and register pages
-- [ ] Style pages with centered card layout, responsive design
-- [ ] Test navigation flows
+- [ ] Add function `parse_tool_calls_jsonl(file_path)` to `src/log_parser.py`
+- [ ] Read file line-by-line (streaming)
+- [ ] Use `orjson.loads()` for fast JSON parsing
+- [ ] Extract fields: ts, agent, tool, input, output, success, duration_ms
+- [ ] Handle malformed JSON lines (skip with warning, continue parsing)
+- [ ] Calculate session duration from first and last timestamp
+- [ ] Compute aggregate stats: tool_call_count, unique_tools, unique_agents, has_errors
+- [ ] Return list of tool call dicts + session metadata
 
 **Acceptance Criteria**:
-- [ ] `/login` displays login form for unauthenticated users
-- [ ] `/register` displays registration form
-- [ ] Successful login redirects to `/dashboard`
-- [ ] Successful registration redirects to `/dashboard`
-- [ ] `/dashboard` redirects to `/login` if user not authenticated
-- [ ] Authenticated users accessing `/login` redirected to `/dashboard`
-- [ ] Navigation links work correctly between pages
-- [ ] Pages are responsive on mobile, tablet, desktop
+- GIVEN valid tool_calls.jsonl WHEN parsing THEN all tool call records are extracted
+- GIVEN file with malformed line WHEN parsing THEN line is skipped and warning is logged
+- WHEN parsing 10,000-line JSONL THEN processing completes in < 5 seconds
 
 **Technical Notes**:
-- Use React Router 6 with declarative routing
-- Implement route guards in ProtectedRoute component
-- Consider adding a "Forgot Password" link (post-MVP feature)
-- Add page titles for SEO and accessibility
-
-**Files to Create**:
-- `frontend/src/pages/LoginPage.tsx`
-- `frontend/src/pages/RegisterPage.tsx`
-- `frontend/src/pages/DashboardPage.tsx`
-- `frontend/src/App.tsx` (updated with routes)
+- Use `orjson` for 3x faster parsing vs stdlib json
+- Validate required fields: ts, agent, tool, success
+- Store input/output as JSON strings (don't parse deeply)
 
 ---
 
-### TASK-014: Authentication Integration Testing
-**ID**: TASK-014
-**Complexity**: M (Medium)
+### T1.5: Log File Discovery and Indexing
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.2, T1.3, T1.4
+**Priority**: High
+
+**Description**: Implement log file discovery from config.json and incremental indexing into SQLite database.
+
+**Subtasks**:
+- [ ] Create `src/config_loader.py` module
+- [ ] Implement `load_config()` to read `.claude/config.json`
+- [ ] Extract `paths.logs` field from config
+- [ ] Resolve log directory path relative to project root
+- [ ] Add function `discover_log_files(log_dir)` to find all session_*_transcript.txt files
+- [ ] Implement `incremental_index(log_dir, db)` function
+- [ ] Query existing sessions from database (session_id, file_mtime)
+- [ ] Compare file mtimes to detect new/modified files
+- [ ] Parse only new or modified sessions
+- [ ] Batch insert to database (1000 records per transaction)
+- [ ] Log indexing progress (e.g., "Indexed 342/500 sessions...")
+
+**Acceptance Criteria**:
+- GIVEN project with logs/ directory WHEN `load_config()` is called THEN correct log path is returned
+- GIVEN 100 new log files WHEN `incremental_index()` runs THEN only new files are parsed
+- WHEN indexing 1000 sessions THEN process completes in < 30 seconds
+
+**Technical Notes**:
+- Use `pathlib.Path` for cross-platform path handling
+- Use `os.path.getmtime()` for file modification time
+- Use `executemany()` for batch inserts
+
+---
+
+### T1.6: Build Inverted Index for Filters
+**Complexity**: Medium
+**Effort**: 2 hours
+**Dependencies**: T1.5
+**Priority**: High
+
+**Description**: Build in-memory inverted index mapping tools/agents/skills to session IDs for fast filtering.
+
+**Subtasks**:
+- [ ] Create `src/search_engine.py` module
+- [ ] Implement `build_inverted_index(db)` function
+- [ ] Query database: `SELECT DISTINCT tool FROM tool_calls`
+- [ ] Build dict: `{'tools': {tool_name: [session_ids]}, 'agents': {...}, 'skills': {...}}`
+- [ ] Query all tool_calls grouped by tool and aggregate session_ids
+- [ ] Implement skill detection heuristic (multi-agent-researcher, spec-workflow-orchestrator, none)
+- [ ] Cache inverted index in memory (refresh on new indexing)
+
+**Acceptance Criteria**:
+- GIVEN database with 1000 sessions WHEN inverted index is built THEN index size < 10MB
+- WHEN filtering by tool="WebSearch" THEN session IDs are returned in < 10ms
+- WHEN combining filters (tool AND agent) THEN set intersection is correct
+
+**Technical Notes**:
+- Use Python sets for fast intersection/union operations
+- Skill detection: check for specific agent patterns (researcher + report-writer, spec-analyst + spec-architect + spec-planner)
+
+---
+
+### T1.7: Implement SQLite FTS5 Full-Text Search
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.5
+**Priority**: High
+
+**Description**: Implement keyword search using SQLite FTS5 with ranking and snippet generation.
+
+**Subtasks**:
+- [ ] Add function `search_transcripts(query, limit=50)` to `src/search_engine.py`
+- [ ] Build SQL query: `SELECT session_id, snippet(transcripts_fts, 1, '<mark>', '</mark>', '...', 32) AS snippet, rank FROM transcripts_fts WHERE content MATCH ? ORDER BY rank LIMIT ?`
+- [ ] Support FTS5 query syntax: `"exact phrase"`, `keyword1 OR keyword2`, `-excluded`
+- [ ] Escape special characters in user queries
+- [ ] Return list of results with session_id, snippet, relevance_score
+- [ ] Join with sessions table to get full metadata
+
+**Acceptance Criteria**:
+- GIVEN query "MCP servers" WHEN searching THEN sessions containing phrase are returned
+- WHEN query contains 2 keywords THEN results ranked by relevance (BM25)
+- WHEN searching 10,000 sessions THEN response time < 500ms
+
+**Technical Notes**:
+- FTS5 uses BM25 ranking algorithm (built-in)
+- Use `snippet()` function to generate highlighted excerpts
+- Limit snippet length to 32 tokens for UI display
+
+---
+
+### T1.8: FastAPI Server - Basic Setup and Endpoints
+**Complexity**: Medium
 **Effort**: 4 hours
-**Dependencies**: TASK-013
-**Priority**: High (Quality Gate)
-**Assignee Profile**: Backend or frontend developer
+**Dependencies**: T1.2, T1.5, T1.6, T1.7
+**Priority**: Critical
 
-**Description**: Write end-to-end integration tests for complete authentication flows using Playwright or Cypress.
-
-**Subtasks**:
-- [ ] Set up Playwright test environment
-- [ ] Write test: "User can register new account"
-- [ ] Write test: "User can login with valid credentials"
-- [ ] Write test: "Login fails with invalid credentials"
-- [ ] Write test: "Duplicate email registration returns error"
-- [ ] Write test: "Protected routes redirect unauthenticated users"
-- [ ] Write test: "User can logout successfully"
-- [ ] Write test: "Session persists after browser refresh"
-- [ ] Configure test database seeding for consistent test data
-- [ ] Add E2E tests to CI/CD pipeline
-
-**Acceptance Criteria**:
-- [ ] All E2E tests pass locally
-- [ ] Tests run in CI/CD pipeline on every PR
-- [ ] Tests cover happy path and error scenarios
-- [ ] Test suite completes in <2 minutes
-- [ ] Tests are deterministic (no flakiness)
-- [ ] Test database isolated from development database
-
-**Technical Notes**:
-- Use Playwright for cross-browser testing
-- Run tests against Docker Compose environment
-- Seed test database before each test run
-- Clean up test data after tests complete
-
-**Files to Create**:
-- `e2e/tests/auth.spec.ts`
-- `e2e/playwright.config.ts`
-- `scripts/seed-test-db.ts`
-
----
-
-## Phase 3: Core Task CRUD
-
-**Duration**: 7 days
-**Effort**: 56-72 hours
-**Goal**: Implement complete task creation, reading, updating, and deletion functionality
-
----
-
-### TASK-015: Task Service & Repository (Backend)
-**ID**: TASK-015
-**Complexity**: L (Large)
-**Effort**: 8 hours
-**Dependencies**: TASK-007
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Backend developer
-
-**Description**: Implement task management service with CRUD operations, pagination, and business logic for task lifecycle.
+**Description**: Create FastAPI application with core API endpoints for sessions and search.
 
 **Subtasks**:
-- [ ] Create `/api/src/services/task.service.ts`
-- [ ] Implement `createTask()`: validate input, set defaults (status=NOT_STARTED, priority=MEDIUM), create task record
-- [ ] Implement `getTasks()`: fetch user's tasks with pagination, filtering, sorting
-- [ ] Implement `getTaskById()`: fetch single task, verify ownership
-- [ ] Implement `updateTask()`: validate input, update task, handle completed_at timestamp
-- [ ] Implement `deleteTask()`: verify ownership, hard delete task
-- [ ] Implement `updateTaskStatus()`: quick status change, set completed_at if status=COMPLETED
-- [ ] Implement pagination helper: calculate offset, limit, total pages
-- [ ] Add query optimization: select only needed fields, eager load relations
-- [ ] Write unit tests for all service methods (80% coverage)
+- [ ] Create `server.py` as main entry point
+- [ ] Initialize FastAPI app with CORS middleware (allow localhost:8080)
+- [ ] Add startup event handler to initialize database and run incremental indexing
+- [ ] Implement `GET /api/sessions` endpoint (paginated list)
+- [ ] Implement `GET /api/sessions/{session_id}` endpoint (detail)
+- [ ] Implement `GET /api/sessions/{session_id}/transcript` endpoint (full text)
+- [ ] Implement `GET /api/sessions/{session_id}/tool-calls` endpoint (list)
+- [ ] Implement `GET /api/search?q={query}` endpoint (keyword search)
+- [ ] Implement `GET /api/filters/tools` endpoint (list unique tools with counts)
+- [ ] Implement `GET /api/filters/agents` endpoint (list unique agents with counts)
+- [ ] Implement `GET /api/status` health check endpoint
+- [ ] Add error handling middleware (return JSON errors)
+- [ ] Bind server to 127.0.0.1 (localhost only) on port 8080
+- [ ] Add `if __name__ == '__main__'` block to run uvicorn
 
 **Acceptance Criteria**:
-- [ ] Tasks are always filtered by user_id (no cross-user data leaks)
-- [ ] Pagination returns correct page, total count, has_next/has_prev flags
-- [ ] Status change to COMPLETED sets completed_at timestamp
-- [ ] Reopening completed task clears completed_at
-- [ ] Default values applied (status, priority) when not provided
-- [ ] Service throws errors for unauthorized access attempts
-- [ ] All unit tests pass with 80%+ coverage
-- [ ] Query performance <100ms for 10,000 tasks (verified with EXPLAIN)
+- GIVEN server is running WHEN `GET /api/status` THEN response is `{"status": "healthy"}`
+- WHEN `GET /api/sessions?page=1&limit=50` THEN paginated session list is returned
+- WHEN `GET /api/search?q=MCP` THEN search results with snippets are returned
+- WHEN accessing from external IP THEN connection is refused (localhost only)
 
 **Technical Notes**:
-- Use Prisma's `findMany` with `where`, `orderBy`, `skip`, `take`
-- Implement cursor-based pagination for better performance (optional)
-- Use transactions for operations affecting multiple tables
-- Log task creation/updates for audit trail (optional)
-
-**Files to Create**:
-- `api/src/services/task.service.ts`
-- `api/src/utils/pagination.ts`
-- `api/src/__tests__/services/task.service.test.ts`
+- Use Pydantic models for request/response validation
+- Use `@lru_cache` for caching filter dropdown data
+- Log all requests with response time
 
 ---
 
-### TASK-016: Task Routes & Controllers (Backend)
-**ID**: TASK-016
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-015
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Backend developer
+### T1.9: Frontend - HTML Structure and Layout
+**Complexity**: Low
+**Effort**: 2 hours
+**Dependencies**: T1.1
+**Priority**: High
 
-**Description**: Create RESTful API endpoints for task CRUD operations with validation, authorization, and error handling.
+**Description**: Create base HTML structure with responsive layout for session list and detail views.
 
 **Subtasks**:
-- [ ] Create `/api/src/controllers/task.controller.ts`
-- [ ] Implement `createTask()`: validate input, call service, return 201
-- [ ] Implement `getTasks()`: parse query params, call service, return paginated response
-- [ ] Implement `getTaskById()`: validate UUID, call service, return 200
-- [ ] Implement `updateTask()`: validate input, verify ownership, call service
-- [ ] Implement `deleteTask()`: verify ownership, call service, return 204
-- [ ] Implement `updateTaskStatus()`: quick status update endpoint
-- [ ] Create `/api/src/routes/task.routes.ts`
-- [ ] Define routes: `GET /tasks`, `POST /tasks`, `GET /tasks/:id`, `PUT /tasks/:id`, `DELETE /tasks/:id`, `PATCH /tasks/:id/status`
-- [ ] Apply auth middleware to all routes
-- [ ] Apply validation middleware with Zod schemas
-- [ ] Write integration tests with Supertest
+- [ ] Create `static/index.html`
+- [ ] Add semantic HTML5 structure: `<header>`, `<nav>`, `<main>`, `<aside>`, `<footer>`
+- [ ] Define layout grid: left sidebar (filters), main content area, optional right sidebar
+- [ ] Add meta tags: viewport, charset, description
+- [ ] Link CSS and JS files
+- [ ] Create placeholder divs for dynamic content: `#session-list`, `#session-detail`, `#filter-panel`, `#analytics-dashboard`
+- [ ] Add loading spinner element
 
 **Acceptance Criteria**:
-- [ ] `POST /api/v1/tasks` creates task and returns 201 with task data
-- [ ] `GET /api/v1/tasks` returns paginated task list
-- [ ] `GET /api/v1/tasks/:id` returns single task or 404
-- [ ] `PUT /api/v1/tasks/:id` updates task and returns 200
-- [ ] `DELETE /api/v1/tasks/:id` deletes task and returns 204
-- [ ] `PATCH /api/v1/tasks/:id/status` updates status only
-- [ ] 403 error returned when user tries to access another user's task
-- [ ] 400 error returned for validation failures
-- [ ] All integration tests pass
+- GIVEN index.html WHEN opened in browser THEN page layout renders correctly
+- WHEN resizing browser window THEN layout is responsive (min-width: 1366px)
+- WHEN inspecting HTML THEN semantic elements are used correctly
 
 **Technical Notes**:
-- Use `:id` route parameter for task ID
-- Validate UUIDs before database queries
-- Return consistent error response format
-- Include pagination metadata in GET /tasks response
-
-**Files to Create**:
-- `api/src/controllers/task.controller.ts`
-- `api/src/routes/task.routes.ts`
-- `api/src/schemas/task.schema.ts`
-- `api/src/__tests__/routes/task.routes.test.ts`
+- Use CSS Grid for main layout
+- Use Flexbox for component layouts
+- Mobile-first CSS (though target is desktop)
 
 ---
 
-### TASK-017: Task API Client & React Query Hooks (Frontend)
-**ID**: TASK-017
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-016 (API contract defined)
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Frontend developer
-**Can Run in Parallel**: Yes (after API contract is defined)
+### T1.10: Frontend - CSS Styling (Base Styles)
+**Complexity**: Low
+**Effort**: 3 hours
+**Dependencies**: T1.9
+**Priority**: Medium
 
-**Description**: Create React Query hooks for task CRUD operations with optimistic updates, caching, and error handling.
+**Description**: Implement global CSS styles, variables, typography, and layout patterns.
 
 **Subtasks**:
-- [ ] Create `/frontend/src/services/taskService.ts` with API client methods
-- [ ] Implement `getTasks()`: fetch tasks with query params (filters, pagination)
-- [ ] Implement `getTaskById()`: fetch single task
-- [ ] Implement `createTask()`: POST new task
-- [ ] Implement `updateTask()`: PUT task updates
-- [ ] Implement `deleteTask()`: DELETE task
-- [ ] Create `/frontend/src/hooks/useTasks.ts` with React Query hooks
-- [ ] Implement `useTasks()`: query hook with caching, pagination
-- [ ] Implement `useTask(id)`: query hook for single task
-- [ ] Implement `useCreateTask()`: mutation hook with optimistic update
-- [ ] Implement `useUpdateTask()`: mutation hook with optimistic update
-- [ ] Implement `useDeleteTask()`: mutation hook with optimistic update
-- [ ] Configure cache invalidation strategy
+- [ ] Create `static/css/main.css`
+- [ ] Define CSS variables for colors, spacing, font sizes, shadows
+- [ ] Set up typography (font-family: system fonts, font-size scale)
+- [ ] Create utility classes: `.container`, `.card`, `.btn`, `.badge`, `.spinner`
+- [ ] Style form elements: `input`, `select`, `button`, `textarea`
+- [ ] Define color scheme: light mode (dark mode optional for Phase 4)
+- [ ] Add responsive breakpoints using media queries
+- [ ] Create loading spinner animation
 
 **Acceptance Criteria**:
-- [ ] `useTasks()` fetches and caches task list
-- [ ] Cache automatically refetches when user returns to tab (staleTime)
-- [ ] Create/update/delete mutations trigger cache invalidation
-- [ ] Optimistic updates show changes immediately before server response
-- [ ] Rollback on error (revert optimistic update)
-- [ ] Loading and error states available in components
-- [ ] React Query DevTools show cached queries
-- [ ] All hooks have proper TypeScript types
+- GIVEN CSS file WHEN applied THEN consistent typography across all text
+- WHEN using utility classes THEN components render with correct spacing and colors
+- WHEN hovering over buttons THEN visual feedback is provided
 
 **Technical Notes**:
-- Use React Query 5 with `useQuery`, `useMutation`
-- Configure `staleTime: 5 minutes`, `cacheTime: 30 minutes`
-- Use `queryClient.invalidateQueries()` for cache invalidation
-- Implement optimistic updates with `onMutate`, `onError`, `onSettled`
-
-**Files to Create**:
-- `frontend/src/services/taskService.ts`
-- `frontend/src/hooks/useTasks.ts`
-- `frontend/src/types/task.ts`
-- `frontend/src/__tests__/hooks/useTasks.test.ts`
+- Use CSS custom properties (variables) for themeable design
+- Use system font stack for fast rendering: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, ...`
 
 ---
 
-### TASK-018: Task List Component (Frontend)
-**ID**: TASK-018
-**Complexity**: L (Large)
-**Effort**: 10 hours
-**Dependencies**: TASK-017
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Frontend developer
+### T1.11: Frontend - Session List Component
+**Complexity**: Medium
+**Effort**: 4 hours
+**Dependencies**: T1.8, T1.9, T1.10
+**Priority**: High
 
-**Description**: Create task list component with virtualization, sorting, filtering, and inline actions (status change, delete).
+**Description**: Implement Web Component for displaying paginated session list with metadata.
 
 **Subtasks**:
-- [ ] Create `/frontend/src/components/tasks/TaskList.tsx`
-- [ ] Fetch tasks using `useTasks()` hook
-- [ ] Display tasks in card/row layout with title, status, priority, due date
-- [ ] Implement virtualization with `react-window` for 100+ tasks
-- [ ] Add loading skeleton while tasks load
-- [ ] Add empty state when no tasks ("No tasks yet. Create your first task!")
-- [ ] Implement inline status change (dropdown or buttons)
-- [ ] Add delete button with confirmation dialog
-- [ ] Color-code priority: Urgent=red, High=orange, Medium=yellow, Low=gray
-- [ ] Show overdue indicator (red flag) when due_date < today and status != COMPLETED
-- [ ] Make task rows clickable to open detail modal
-- [ ] Implement pagination controls (Previous/Next buttons)
-- [ ] Write component tests
+- [ ] Create `static/js/components/session-list.js`
+- [ ] Define `<session-list>` custom element class extending HTMLElement
+- [ ] Implement `render()` method to display sessions in table or card grid
+- [ ] Add columns: Session ID, Date/Time, Duration, Tool Count, Tools (tags), Agents (tags)
+- [ ] Implement pagination controls (Previous, Next, Page N of M)
+- [ ] Add click event listener to navigate to session detail view
+- [ ] Handle empty state (no sessions found)
+- [ ] Handle loading state (show spinner)
+- [ ] Implement hover tooltip showing first user message
 
 **Acceptance Criteria**:
-- [ ] Task list displays all user's tasks from API
-- [ ] Tasks sorted by created_at desc by default
-- [ ] Priority color-coding visually distinct
-- [ ] Overdue tasks show red indicator
-- [ ] Status change updates immediately (optimistic update)
-- [ ] Delete confirmation prevents accidental deletion
-- [ ] Loading state shown during initial fetch
-- [ ] Empty state shown when user has no tasks
-- [ ] Pagination works correctly (page numbers, navigation)
-- [ ] Component tests cover rendering and interactions
+- GIVEN 100 sessions WHEN component renders THEN only 50 sessions per page are displayed
+- WHEN clicking session row THEN `session-click` event is emitted with session_id
+- WHEN hovering over session THEN tooltip shows first user message
 
 **Technical Notes**:
-- Use `react-window` or `react-virtualized` for performance with large lists
-- Implement debounce for search input (300ms)
-- Use React.memo to prevent unnecessary re-renders
-- Consider table view and kanban board view (post-MVP)
-
-**Files to Create**:
-- `frontend/src/components/tasks/TaskList.tsx`
-- `frontend/src/components/tasks/TaskCard.tsx`
-- `frontend/src/components/shared/EmptyState.tsx`
-- `frontend/src/__tests__/components/tasks/TaskList.test.tsx`
+- Use Shadow DOM for style encapsulation
+- Use dataset attributes for storing session data
+- Emit custom events for parent component communication
 
 ---
 
-### TASK-019: Task Creation Form (Frontend)
-**ID**: TASK-019
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-017
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Frontend developer
-
-**Description**: Create task creation modal/form with all fields, validation, and quick-add option for title-only tasks.
-
-**Subtasks**:
-- [ ] Create `/frontend/src/components/tasks/TaskCreateModal.tsx`
-- [ ] Use React Hook Form for form state management
-- [ ] Add form fields: title (required), description, priority, status, due_date, list, tags
-- [ ] Implement Zod validation matching backend schema
-- [ ] Add date picker component for due_date field
-- [ ] Add tag input with autocomplete (comma-separated or tag chips)
-- [ ] Create quick-add input: inline text input for title-only task creation
-- [ ] Show full form when "More details" clicked
-- [ ] Call `useCreateTask()` mutation on submit
-- [ ] Show loading spinner during creation
-- [ ] Display success notification and close modal on success
-- [ ] Display error message on failure
-- [ ] Write component tests
-
-**Acceptance Criteria**:
-- [ ] Modal opens when "New Task" button clicked
-- [ ] Quick-add creates task with only title (default priority, status)
-- [ ] Full form allows setting all task fields
-- [ ] Client-side validation prevents invalid submissions
-- [ ] Date picker allows selecting due dates
-- [ ] Tag autocomplete suggests existing tags
-- [ ] Task appears in list immediately after creation (optimistic update)
-- [ ] Error messages displayed for API failures
-- [ ] Form resets after successful creation
-- [ ] Keyboard accessible (Tab, Enter, Escape)
-
-**Technical Notes**:
-- Use headlessUI Modal component or Radix UI Dialog
-- Use react-day-picker for date selection
-- Store modal open state in UI store (Zustand)
-- Consider hotkey "N" to open create modal (post-MVP)
-
-**Files to Create**:
-- `frontend/src/components/tasks/TaskCreateModal.tsx`
-- `frontend/src/components/tasks/QuickAddTask.tsx`
-- `frontend/src/components/shared/Modal.tsx`
-- `frontend/src/components/shared/DatePicker.tsx`
-- `frontend/src/__tests__/components/tasks/TaskCreateModal.test.tsx`
-
----
-
-### TASK-020: Task Detail & Edit Modal (Frontend)
-**ID**: TASK-020
-**Complexity**: L (Large)
-**Effort**: 8 hours
-**Dependencies**: TASK-017
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Frontend developer
-
-**Description**: Create task detail modal with inline editing, full CRUD operations, and rich metadata display.
-
-**Subtasks**:
-- [ ] Create `/frontend/src/components/tasks/TaskDetailModal.tsx`
-- [ ] Display task in read-only mode initially
-- [ ] Show all fields: title, description, status, priority, due_date, list, tags, created_at, updated_at
-- [ ] Add "Edit" button to switch to edit mode
-- [ ] In edit mode, use same form fields as create modal
-- [ ] Call `useUpdateTask()` mutation on save
-- [ ] Add "Delete" button with confirmation dialog
-- [ ] Call `useDeleteTask()` mutation on delete
-- [ ] Show timestamps: "Created 2 days ago", "Updated 1 hour ago"
-- [ ] Display completion timestamp if status=COMPLETED
-- [ ] Add "Mark as Complete" quick action button
-- [ ] Implement keyboard shortcuts: Escape to close, E to edit
-- [ ] Write component tests
-
-**Acceptance Criteria**:
-- [ ] Modal opens when task card clicked
-- [ ] All task details displayed correctly
-- [ ] Edit mode allows modifying all fields
-- [ ] Save updates task and shows changes immediately
-- [ ] Delete removes task from list after confirmation
-- [ ] Completion timestamp shown for completed tasks
-- [ ] Quick action buttons work (mark complete, delete)
-- [ ] Keyboard shortcuts functional
-- [ ] Optimistic updates work correctly
-- [ ] Error handling displays user-friendly messages
-
-**Technical Notes**:
-- Use same Modal component as task creation
-- Toggle between read and edit mode with state
-- Use React Hook Form for edit mode
-- Consider rich text editor for description (post-MVP)
-
-**Files to Create**:
-- `frontend/src/components/tasks/TaskDetailModal.tsx`
-- `frontend/src/components/tasks/TaskEditForm.tsx`
-- `frontend/src/__tests__/components/tasks/TaskDetailModal.test.tsx`
-
----
-
-### TASK-021: Dashboard Page Layout (Frontend)
-**ID**: TASK-021
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-018, TASK-019
-**Priority**: Critical (MVP Blocker)
-**Assignee Profile**: Frontend developer
-
-**Description**: Create main dashboard layout with sidebar navigation, header, and task list integration.
-
-**Subtasks**:
-- [ ] Create `/frontend/src/components/layout/MainLayout.tsx`
-- [ ] Create `/frontend/src/components/layout/Sidebar.tsx`
-- [ ] Create `/frontend/src/components/layout/Header.tsx`
-- [ ] Implement responsive layout: sidebar visible on desktop, hamburger menu on mobile
-- [ ] Add sidebar navigation: "All Tasks", "Today", "Upcoming", "Completed"
-- [ ] Add header with user menu (logout option)
-- [ ] Add "New Task" button in header
-- [ ] Integrate TaskList component in main content area
-- [ ] Apply TailwindCSS for responsive grid layout
-- [ ] Test on desktop (1920px), tablet (768px), mobile (375px)
-- [ ] Write component tests
-
-**Acceptance Criteria**:
-- [ ] Sidebar shows navigation links on desktop (>1024px)
-- [ ] Hamburger menu shows sidebar overlay on mobile (<768px)
-- [ ] Header contains app title, new task button, user menu
-- [ ] User menu allows logout
-- [ ] Task list occupies main content area
-- [ ] Layout responsive across all breakpoints
-- [ ] Sidebar navigation changes active task filter
-- [ ] All navigation functional
-- [ ] Components render without errors
-
-**Technical Notes**:
-- Use CSS Grid for main layout (sidebar + content)
-- Use headlessUI Menu for user dropdown
-- Store sidebar open/closed state in UI store
-- Consider adding breadcrumbs for navigation context
-
-**Files to Create**:
-- `frontend/src/components/layout/MainLayout.tsx`
-- `frontend/src/components/layout/Sidebar.tsx`
-- `frontend/src/components/layout/Header.tsx`
-- `frontend/src/pages/DashboardPage.tsx` (updated)
-
----
-
-### TASK-022: Task CRUD Integration Testing
-**ID**: TASK-022
-**Complexity**: M (Medium)
+### T1.12: Frontend - Session Detail Component
+**Complexity**: High
 **Effort**: 5 hours
-**Dependencies**: TASK-021
-**Priority**: High (Quality Gate)
-**Assignee Profile**: Frontend or backend developer
+**Dependencies**: T1.8, T1.9, T1.10
+**Priority**: High
 
-**Description**: Write end-to-end tests for complete task management workflows including creation, editing, and deletion.
-
-**Subtasks**:
-- [ ] Write E2E test: "User can create a new task"
-- [ ] Write E2E test: "User can view task details"
-- [ ] Write E2E test: "User can edit task fields"
-- [ ] Write E2E test: "User can change task status"
-- [ ] Write E2E test: "User can delete task"
-- [ ] Write E2E test: "User can create quick task with title only"
-- [ ] Write E2E test: "Pagination works correctly"
-- [ ] Write E2E test: "Empty state shows when no tasks"
-- [ ] Add tests to CI/CD pipeline
-- [ ] Verify tests pass on multiple browsers
-
-**Acceptance Criteria**:
-- [ ] All E2E tests pass locally and in CI
-- [ ] Tests cover happy path and edge cases
-- [ ] Test suite completes in <3 minutes
-- [ ] Tests are deterministic (no flakiness)
-- [ ] Screenshots captured on failure for debugging
-
-**Technical Notes**:
-- Use Playwright for cross-browser testing
-- Seed database with test data before tests
-- Clean up test data after tests complete
-- Use Page Object Model pattern for maintainability
-
-**Files to Create**:
-- `e2e/tests/tasks.spec.ts`
-- `e2e/pages/DashboardPage.ts` (Page Object)
-- `e2e/pages/TaskDetailModal.ts` (Page Object)
-
----
-
-## Phase 4: Task Organization Features
-
-**Duration**: 8 days
-**Effort**: 64-80 hours
-**Goal**: Implement lists/projects, tags, priorities, and due dates for task organization
-
----
-
-### TASK-023: List/Project Service & Routes (Backend)
-**ID**: TASK-023
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-015
-**Priority**: High (MVP Critical)
-**Assignee Profile**: Backend developer
-
-**Description**: Implement list/project management service and API endpoints for task categorization.
+**Description**: Implement session detail view with split-pane layout: transcript on left, tool calls timeline on right.
 
 **Subtasks**:
-- [ ] Create `/api/src/services/list.service.ts`
-- [ ] Implement `createList()`: validate name uniqueness per user, create list
-- [ ] Implement `getLists()`: fetch user's lists with task counts
-- [ ] Implement `updateList()`: rename list, change color
-- [ ] Implement `deleteList()`: handle task reassignment (move to uncategorized or delete)
-- [ ] Enforce max 50 lists per user
-- [ ] Create `/api/src/controllers/list.controller.ts`
-- [ ] Create `/api/src/routes/list.routes.ts`
-- [ ] Define routes: `GET /lists`, `POST /lists`, `PUT /lists/:id`, `DELETE /lists/:id`
-- [ ] Write unit and integration tests
+- [ ] Create `static/js/components/session-detail.js`
+- [ ] Define `<session-detail>` custom element
+- [ ] Fetch session data from API: `/api/sessions/{id}`, `/api/sessions/{id}/transcript`, `/api/sessions/{id}/tool-calls`
+- [ ] Implement split-pane layout (60/40 width ratio)
+- [ ] Left pane: Display full transcript with timestamps
+- [ ] Right pane: Display tool call timeline (vertical list)
+- [ ] Add syntax highlighting for JSON (input/output)
+- [ ] Implement collapsible tool call details (click to expand JSON)
+- [ ] Add copy-to-clipboard buttons for transcript and JSON
+- [ ] Color-code tool calls by success status (green=success, red=failure)
+- [ ] Add back button to return to session list
 
 **Acceptance Criteria**:
-- [ ] Lists created successfully with unique names per user
-- [ ] Duplicate list names return 400 error
-- [ ] GET /lists returns all user lists with task counts
-- [ ] List update changes name/color
-- [ ] List deletion prompts for task handling decision
-- [ ] Max 50 lists enforced
-- [ ] All tests pass with 80%+ coverage
+- GIVEN session_id WHEN detail view loads THEN full transcript and tool calls are displayed
+- WHEN clicking tool call THEN input/output JSON is expanded
+- WHEN clicking copy button THEN content is copied to clipboard
 
 **Technical Notes**:
-- Use Prisma transaction for list deletion + task reassignment
-- Default "Uncategorized" list created for new users (in seed script)
-- Color stored as hex code (#3b82f6)
-
-**Files to Create**:
-- `api/src/services/list.service.ts`
-- `api/src/controllers/list.controller.ts`
-- `api/src/routes/list.routes.ts`
-- `api/src/schemas/list.schema.ts`
-- `api/src/__tests__/services/list.service.test.ts`
+- Use `highlight.js` or simple regex for JSON syntax highlighting
+- Use `navigator.clipboard.writeText()` for clipboard API
+- Implement lazy loading of transcript (fetch on-demand)
 
 ---
 
-### TASK-024: Tag Service & Routes (Backend)
-**ID**: TASK-024
-**Complexity**: M (Medium)
-**Effort**: 5 hours
-**Dependencies**: TASK-015
-**Priority**: Medium (MVP Nice-to-Have)
-**Assignee Profile**: Backend developer
+### T1.13: Frontend - API Client Module
+**Complexity**: Low
+**Effort**: 2 hours
+**Dependencies**: T1.8
+**Priority**: High
 
-**Description**: Implement tag management service with autocomplete, many-to-many relationships, and usage tracking.
+**Description**: Create JavaScript API client wrapper for all backend endpoints with error handling.
 
 **Subtasks**:
-- [ ] Create `/api/src/services/tag.service.ts`
-- [ ] Implement `getTags()`: fetch all user tags with usage counts
-- [ ] Implement `getTagAutocomplete()`: search tags by name prefix
-- [ ] Implement `addTagsToTask()`: create tags if not exist, link to task
-- [ ] Implement `removeTagsFromTask()`: unlink tags, delete unused tags
-- [ ] Implement case-insensitive tag matching
-- [ ] Enforce max 10 tags per task
-- [ ] Create `/api/src/controllers/tag.controller.ts`
-- [ ] Create `/api/src/routes/tag.routes.ts`
-- [ ] Define routes: `GET /tags`, `GET /tags/autocomplete`, `POST /tasks/:id/tags`, `DELETE /tasks/:id/tags`
-- [ ] Write unit and integration tests
+- [ ] Create `static/js/api.js` module
+- [ ] Define base API URL: `const API_BASE = '/api'`
+- [ ] Implement `fetchJSON(url, options)` helper with error handling
+- [ ] Implement `getSessions(page, limit, filters)` function
+- [ ] Implement `getSessionDetail(sessionId)` function
+- [ ] Implement `getSessionTranscript(sessionId)` function
+- [ ] Implement `getSessionToolCalls(sessionId)` function
+- [ ] Implement `searchSessions(query)` function
+- [ ] Implement `getFilterOptions(type)` function (tools, agents, skills)
+- [ ] Add error logging to console
+- [ ] Add retry logic for failed requests (3 attempts with exponential backoff)
 
 **Acceptance Criteria**:
-- [ ] Tags created on first use, reused on subsequent tagging
-- [ ] Autocomplete returns matching tags (case-insensitive)
-- [ ] Tags removed from task when last usage deleted
-- [ ] Max 10 tags per task enforced
-- [ ] Tag usage counts accurate
-- [ ] All tests pass with 80%+ coverage
+- GIVEN API endpoint WHEN `fetchJSON()` is called THEN response is parsed as JSON
+- WHEN API returns 404 THEN error is logged and Promise rejects
+- WHEN network fails THEN retry mechanism attempts 3 times before rejecting
 
 **Technical Notes**:
-- Store tags globally (not per-user) for autocomplete suggestions
-- Use Prisma transaction for tag creation + task-tag linking
-- Implement tag cleanup job to remove orphaned tags (post-MVP)
-
-**Files to Create**:
-- `api/src/services/tag.service.ts`
-- `api/src/controllers/tag.controller.ts`
-- `api/src/routes/tag.routes.ts`
-- `api/src/schemas/tag.schema.ts`
-- `api/src/__tests__/services/tag.service.test.ts`
+- Use `fetch()` API (native browser support)
+- Return Promises for async operations
+- Add timeout handling (10 seconds)
 
 ---
 
-### TASK-025: List Management UI (Frontend)
-**ID**: TASK-025
-**Complexity**: M (Medium)
-**Effort**: 7 hours
-**Dependencies**: TASK-023 (API contract defined)
-**Priority**: High (MVP Critical)
-**Assignee Profile**: Frontend developer
-**Can Run in Parallel**: Yes (after API contract is defined)
+### T1.14: Unit Tests - Log Parser
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.3, T1.4
+**Priority**: Medium
 
-**Description**: Create list/project sidebar with CRUD operations, task counts, and drag-and-drop task assignment (optional).
+**Description**: Write unit tests for log parsing functions using pytest.
 
 **Subtasks**:
-- [ ] Create `/frontend/src/components/lists/ListSidebar.tsx`
-- [ ] Fetch lists using React Query hook
-- [ ] Display lists in sidebar with name, color, task count
-- [ ] Add "New List" button and creation modal
-- [ ] Implement list creation with name and color picker
-- [ ] Add inline rename functionality (double-click or edit icon)
-- [ ] Add delete button with confirmation dialog
-- [ ] Show delete options modal: "Move tasks to Uncategorized" or "Delete tasks"
-- [ ] Highlight active list
-- [ ] Update task list when list selected
-- [ ] Write component tests
+- [ ] Create `tests/test_parser.py`
+- [ ] Set up pytest configuration in `tests/conftest.py`
+- [ ] Create fixtures: sample transcript.txt, sample tool_calls.jsonl
+- [ ] Test `parse_transcript()` with valid file
+- [ ] Test `parse_transcript()` with missing file (expect None)
+- [ ] Test `parse_transcript()` with corrupted file (expect warning)
+- [ ] Test `parse_tool_calls_jsonl()` with valid file
+- [ ] Test `parse_tool_calls_jsonl()` with malformed JSON line (expect skip)
+- [ ] Test session metadata calculation (duration, tool counts)
+- [ ] Achieve 80%+ code coverage for log_parser.py
 
 **Acceptance Criteria**:
-- [ ] Lists displayed in sidebar with accurate task counts
-- [ ] New list creation works with name and color
-- [ ] List rename updates immediately (optimistic update)
-- [ ] List deletion shows confirmation with task handling options
-- [ ] Clicking list filters tasks to that list
-- [ ] Active list highlighted visually
-- [ ] Color-coded list indicators visible
-- [ ] Component tests cover CRUD operations
+- WHEN running `pytest tests/test_parser.py` THEN all tests pass
+- GIVEN valid log files WHEN tests run THEN parsing logic is verified correct
+- WHEN running with coverage THEN log_parser.py has >80% coverage
 
 **Technical Notes**:
-- Use React Query hooks: `useLists()`, `useCreateList()`, `useUpdateList()`, `useDeleteList()`
-- Store active list ID in URL params or UI store
-- Use color picker component (react-colorful or similar)
-- Consider drag-and-drop task assignment (post-MVP)
-
-**Files to Create**:
-- `frontend/src/components/lists/ListSidebar.tsx`
-- `frontend/src/components/lists/ListCreateModal.tsx`
-- `frontend/src/components/lists/ListDeleteModal.tsx`
-- `frontend/src/hooks/useLists.ts`
-- `frontend/src/__tests__/components/lists/ListSidebar.test.tsx`
+- Use pytest fixtures for test data
+- Use `tmp_path` fixture for creating temporary test files
+- Mock file I/O for error condition tests
 
 ---
 
-### TASK-026: Tag Input Component (Frontend)
-**ID**: TASK-026
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-024 (API contract defined)
-**Priority**: Medium (MVP Nice-to-Have)
-**Assignee Profile**: Frontend developer
-**Can Run in Parallel**: Yes (after API contract is defined)
+### T1.15: Integration Tests - API Endpoints
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.8
+**Priority**: Medium
 
-**Description**: Create tag input component with autocomplete, tag chips, and keyboard navigation.
+**Description**: Write integration tests for API endpoints using FastAPI TestClient.
 
 **Subtasks**:
-- [ ] Create `/frontend/src/components/tasks/TagInput.tsx`
-- [ ] Implement tag chip display with remove button
-- [ ] Add input field for new tag entry
-- [ ] Fetch tag autocomplete suggestions on input change (debounced)
-- [ ] Show dropdown with matching tags
-- [ ] Allow creating new tags (press Enter or comma)
-- [ ] Limit to 10 tags per task
-- [ ] Implement keyboard navigation (Arrow keys, Enter, Backspace)
-- [ ] Style tags with color-coded badges
-- [ ] Integrate with task create/edit forms
-- [ ] Write component tests
+- [ ] Create `tests/test_api.py`
+- [ ] Set up TestClient with FastAPI app
+- [ ] Create test database fixture (in-memory SQLite)
+- [ ] Seed test database with sample sessions
+- [ ] Test `GET /api/sessions` (expect paginated list)
+- [ ] Test `GET /api/sessions/{id}` (expect session detail)
+- [ ] Test `GET /api/sessions/{id}` with invalid ID (expect 404)
+- [ ] Test `GET /api/search?q=keyword` (expect search results)
+- [ ] Test `GET /api/filters/tools` (expect list of tools)
+- [ ] Test `GET /api/status` (expect healthy status)
+- [ ] Verify response schemas match Pydantic models
 
 **Acceptance Criteria**:
-- [ ] Tags displayed as chips with remove buttons
-- [ ] Autocomplete dropdown shows matching tags
-- [ ] Enter or comma creates new tag
-- [ ] Backspace removes last tag when input empty
-- [ ] Max 10 tags enforced with validation message
-- [ ] Keyboard navigation works (arrows, enter, escape)
-- [ ] Tags validated (alphanumeric, max 30 chars)
-- [ ] Component tests cover interactions
+- WHEN running API tests THEN all endpoints return expected responses
+- WHEN querying with pagination THEN correct number of results returned
+- WHEN querying non-existent session THEN 404 error is returned
 
 **Technical Notes**:
-- Debounce autocomplete API calls (300ms)
-- Use downshift or react-select for autocomplete behavior
-- Store tags as array of strings in form state
-- Validate tag format on client and server
-
-**Files to Create**:
-- `frontend/src/components/tasks/TagInput.tsx`
-- `frontend/src/components/tasks/TagChip.tsx`
-- `frontend/src/hooks/useTags.ts`
-- `frontend/src/__tests__/components/tasks/TagInput.test.tsx`
+- Use `from fastapi.testclient import TestClient`
+- Use in-memory SQLite database (`:memory:`) for isolation
+- Reset database between tests
 
 ---
 
-### TASK-027: Priority & Status Indicators (Frontend)
-**ID**: TASK-027
-**Complexity**: S (Small)
+### T1.16: README and Setup Instructions
+**Complexity**: Low
+**Effort**: 2 hours
+**Dependencies**: T1.1, T1.8
+**Priority**: Medium
+
+**Description**: Write comprehensive README with setup instructions, usage guide, and troubleshooting.
+
+**Subtasks**:
+- [ ] Document system requirements (Python 3.8+, modern browser)
+- [ ] Write installation steps (clone repo, create venv, install dependencies)
+- [ ] Document how to start server (`python server.py`)
+- [ ] Add screenshots of main UI views (session list, detail view)
+- [ ] Document configuration options (environment variables)
+- [ ] Add troubleshooting section (common errors, solutions)
+- [ ] Document project structure and architecture overview
+- [ ] Add development setup instructions (running tests, linting)
+
+**Acceptance Criteria**:
+- GIVEN README WHEN following setup steps THEN user can start application without errors
+- WHEN troubleshooting THEN common issues are documented with solutions
+
+**Technical Notes**:
+- Use Markdown format
+- Add Table of Contents for easy navigation
+- Include code blocks with syntax highlighting
+
+---
+
+## Phase 2: Filtering & Search
+
+### T2.1: Implement Filter Query Logic
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.6, T1.8
+**Priority**: High
+
+**Description**: Add API endpoint for filtering sessions by tools, agents, skills with AND logic.
+
+**Subtasks**:
+- [ ] Update `GET /api/sessions` endpoint to accept filter parameters: `tools[]`, `agents[]`, `skills[]`
+- [ ] Implement filter logic using inverted index (set intersection)
+- [ ] Combine filter results with pagination
+- [ ] Support multiple filter values (e.g., `tools=WebSearch,Read` → sessions with WebSearch OR Read)
+- [ ] Support combining filter types (e.g., `tools=WebSearch&agents=researcher` → sessions with WebSearch AND spawned researcher)
+- [ ] Return filtered session count in response metadata
+
+**Acceptance Criteria**:
+- WHEN `GET /api/sessions?tools=WebSearch` THEN only sessions using WebSearch are returned
+- WHEN `GET /api/sessions?tools=WebSearch&agents=researcher` THEN sessions matching both criteria are returned
+- WHEN filtering 10,000 sessions THEN response time < 200ms
+
+**Technical Notes**:
+- Use set intersection: `sessions_with_websearch & sessions_with_researcher`
+- Convert result session IDs to SQL: `WHERE session_id IN (...)`
+
+---
+
+### T2.2: Frontend - Filter Panel Component
+**Complexity**: Medium
 **Effort**: 4 hours
-**Dependencies**: TASK-018
-**Priority**: High (MVP Critical)
-**Assignee Profile**: Frontend developer
+**Dependencies**: T2.1, T1.9, T1.10
+**Priority**: High
 
-**Description**: Implement visual priority and status indicators with color coding, icons, and quick-change dropdowns.
-
-**Subtasks**:
-- [ ] Create `/frontend/src/components/tasks/PriorityBadge.tsx`
-- [ ] Color-code priorities: Urgent=red, High=orange, Medium=yellow, Low=gray
-- [ ] Add priority icons (optional: flag, exclamation, etc.)
-- [ ] Create `/frontend/src/components/tasks/StatusBadge.tsx`
-- [ ] Color-code statuses: Not Started=gray, In Progress=blue, Completed=green, Blocked=red
-- [ ] Add status icons (checkmark for completed, clock for in progress)
-- [ ] Create quick-change dropdowns for inline editing
-- [ ] Integrate badges into TaskCard component
-- [ ] Add accessibility labels (ARIA)
-- [ ] Write component tests
-
-**Acceptance Criteria**:
-- [ ] Priority badges color-coded correctly
-- [ ] Status badges color-coded correctly
-- [ ] Icons visible and semantically correct
-- [ ] Quick-change dropdowns work in task list
-- [ ] Status change triggers API update (optimistic)
-- [ ] Accessibility labels present for screen readers
-- [ ] Component tests verify rendering for all states
-
-**Technical Notes**:
-- Use TailwindCSS badge classes
-- Consider using Heroicons or Lucide icons
-- Implement dropdown with headlessUI Menu
-- Ensure WCAG AA contrast ratios
-
-**Files to Create**:
-- `frontend/src/components/tasks/PriorityBadge.tsx`
-- `frontend/src/components/tasks/StatusBadge.tsx`
-- `frontend/src/components/tasks/PriorityDropdown.tsx`
-- `frontend/src/__tests__/components/tasks/PriorityBadge.test.tsx`
-
----
-
-### TASK-028: Due Date Picker & Overdue Indicators (Frontend)
-**ID**: TASK-028
-**Complexity**: M (Medium)
-**Effort**: 5 hours
-**Dependencies**: TASK-019
-**Priority**: Medium (MVP Nice-to-Have)
-**Assignee Profile**: Frontend developer
-
-**Description**: Implement date picker component for due dates with calendar UI, overdue indicators, and date filters.
+**Description**: Implement filter panel sidebar with multi-select dropdowns for tools, agents, skills.
 
 **Subtasks**:
-- [ ] Enhance DatePicker component with calendar UI
-- [ ] Add quick-select options: "Today", "Tomorrow", "Next Week", "Clear"
-- [ ] Integrate date picker into task create/edit forms
-- [ ] Create `/frontend/src/components/tasks/DueDateBadge.tsx`
-- [ ] Show due date with relative formatting ("Due in 2 days", "Due today", "Overdue by 1 day")
-- [ ] Add red overdue indicator (icon or badge) when due_date < today and status != COMPLETED
-- [ ] Create date filter in sidebar: "Overdue", "Due Today", "Due This Week"
-- [ ] Update task list to highlight overdue tasks
-- [ ] Write component tests
-
-**Acceptance Criteria**:
-- [ ] Date picker shows calendar UI with month/year navigation
-- [ ] Quick-select options work correctly
-- [ ] Due date displayed with relative formatting
-- [ ] Overdue tasks show red indicator
-- [ ] Date filters in sidebar update task list
-- [ ] Overdue tasks visually distinct in list (red border or background)
-- [ ] Component tests cover date selection and formatting
-
-**Technical Notes**:
-- Use react-day-picker or date-fns for date manipulation
-- Store dates in ISO 8601 format (YYYY-MM-DD)
-- Calculate overdue status client-side for performance
-- Consider timezone handling (use UTC or user's local timezone)
-
-**Files to Create**:
-- `frontend/src/components/shared/DatePicker.tsx` (enhanced)
-- `frontend/src/components/tasks/DueDateBadge.tsx`
-- `frontend/src/utils/dateHelpers.ts`
-- `frontend/src/__tests__/components/tasks/DueDateBadge.test.tsx`
-
----
-
-### TASK-029: Task Filtering UI (Frontend)
-**ID**: TASK-029
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-025, TASK-027
-**Priority**: High (MVP Critical)
-**Assignee Profile**: Frontend developer
-
-**Description**: Create filter UI with multi-select for status, priority, lists, tags, and date ranges with URL state persistence.
-
-**Subtasks**:
-- [ ] Create `/frontend/src/components/tasks/TaskFilters.tsx`
-- [ ] Add filter dropdowns: status (multi-select), priority (multi-select)
-- [ ] Add filter for list selection
-- [ ] Add filter for tags (multi-select with autocomplete)
-- [ ] Add date range filter for due dates
-- [ ] Display active filters as removable chips
+- [ ] Create `static/js/components/filter-panel.js`
+- [ ] Define `<filter-panel>` custom element
+- [ ] Fetch filter options from API: `/api/filters/tools`, `/api/filters/agents`, `/api/filters/skills`
+- [ ] Render multi-select checkboxes for each filter category
+- [ ] Display usage counts next to each option (e.g., "WebSearch (234)")
+- [ ] Implement search-within-filter (type to filter long lists)
 - [ ] Add "Clear All Filters" button
-- [ ] Persist filter state in URL query params
-- [ ] Update task list on filter changes
-- [ ] Show filter count indicator ("3 filters active")
-- [ ] Write component tests
+- [ ] Emit `filter-change` event when filter selection changes
+- [ ] Persist filter state in localStorage
 
 **Acceptance Criteria**:
-- [ ] All filter types functional (status, priority, list, tags, date range)
-- [ ] Multiple filters combine with AND logic
-- [ ] Active filters displayed as chips with remove option
-- [ ] Clear all filters resets to default view
-- [ ] Filter state persisted in URL (shareable links)
-- [ ] Task list updates immediately on filter change
-- [ ] Filter count indicator accurate
-- [ ] Component tests cover filter combinations
+- GIVEN filter panel WHEN user selects "WebSearch" THEN `filter-change` event is emitted
+- WHEN filter options are loaded THEN usage counts are displayed correctly
+- WHEN "Clear All" is clicked THEN all filters are reset and event is emitted
 
 **Technical Notes**:
-- Use React Router's `useSearchParams` for URL state
-- Debounce filter updates to avoid excessive API calls
-- Use multi-select component (headlessUI Listbox or similar)
-- Consider saved filter views (post-MVP)
-
-**Files to Create**:
-- `frontend/src/components/tasks/TaskFilters.tsx`
-- `frontend/src/components/shared/MultiSelect.tsx`
-- `frontend/src/hooks/useTaskFilters.ts`
-- `frontend/src/__tests__/components/tasks/TaskFilters.test.tsx`
+- Use checkboxes for multi-select (better UX than multi-select dropdown)
+- Use Flexbox for filter category layout
+- Debounce filter-change events (300ms) to avoid excessive API calls
 
 ---
 
-### TASK-030: Task Organization Integration Testing
-**ID**: TASK-030
-**Complexity**: M (Medium)
-**Effort**: 5 hours
-**Dependencies**: TASK-029
-**Priority**: High (Quality Gate)
-**Assignee Profile**: Frontend or backend developer
+### T2.3: Frontend - Search Bar Component
+**Complexity**: Low
+**Effort**: 2 hours
+**Dependencies**: T1.8, T1.9, T1.10
+**Priority**: High
 
-**Description**: Write end-to-end tests for list management, tag assignment, filtering, and task organization workflows.
+**Description**: Implement global search bar with debouncing and keyboard shortcuts.
 
 **Subtasks**:
-- [ ] Write E2E test: "User can create and manage lists"
-- [ ] Write E2E test: "User can add tags to tasks"
-- [ ] Write E2E test: "User can filter tasks by status"
-- [ ] Write E2E test: "User can filter tasks by priority"
-- [ ] Write E2E test: "User can filter tasks by list"
-- [ ] Write E2E test: "User can filter tasks by tags"
-- [ ] Write E2E test: "User can combine multiple filters"
-- [ ] Write E2E test: "User can see overdue tasks indicator"
-- [ ] Add tests to CI/CD pipeline
+- [ ] Create `static/js/components/search-bar.js`
+- [ ] Define `<search-bar>` custom element
+- [ ] Add input field with placeholder "Search sessions..."
+- [ ] Implement debounced input handler (300ms delay)
+- [ ] Add keyboard shortcut: Cmd+K (Mac) or Ctrl+K (Windows/Linux) to focus search
+- [ ] Add clear button (X icon) to reset search
+- [ ] Emit `search-submit` event when user presses Enter or after debounce
+- [ ] Persist last search query in localStorage
 
 **Acceptance Criteria**:
-- [ ] All E2E tests pass locally and in CI
-- [ ] Tests cover CRUD operations for lists and tags
-- [ ] Tests verify filter combinations work correctly
-- [ ] Tests confirm URL state persistence
-- [ ] Test suite completes in <4 minutes
+- WHEN user types in search box THEN search is triggered after 300ms pause
+- WHEN user presses Cmd+K THEN search bar gains focus
+- WHEN clear button is clicked THEN search input is cleared and `search-clear` event is emitted
 
 **Technical Notes**:
-- Use Playwright for testing
-- Seed database with diverse test data (various priorities, statuses, due dates)
-- Test filter combinations systematically
-- Verify URL updates correctly with filter changes
-
-**Files to Create**:
-- `e2e/tests/organization.spec.ts`
-- `e2e/pages/FilterPanel.ts` (Page Object)
+- Use `setTimeout()` and `clearTimeout()` for debouncing
+- Use `keydown` event listener for keyboard shortcuts
+- Check `event.metaKey` (Mac) or `event.ctrlKey` (Windows/Linux)
 
 ---
 
-## Phase 5: Search & Filtering
+### T2.4: Frontend - State Management (EventBus)
+**Complexity**: Low
+**Effort**: 2 hours
+**Dependencies**: T1.9
+**Priority**: High
 
-**Duration**: 5 days
-**Effort**: 40-48 hours
-**Goal**: Implement full-text search, advanced filtering, and sorting capabilities
-
----
-
-### TASK-031: Full-Text Search Implementation (Backend)
-**ID**: TASK-031
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-016
-**Priority**: Medium (MVP Nice-to-Have)
-**Assignee Profile**: Backend developer
-
-**Description**: Implement PostgreSQL full-text search for task titles and descriptions with ranking and highlighting.
+**Description**: Implement EventBus pattern for component communication and AppState singleton for global state.
 
 **Subtasks**:
-- [ ] Add full-text search indexes to database: `CREATE INDEX idx_tasks_title_search ON tasks USING GIN(to_tsvector('english', title))`
-- [ ] Add full-text search index for description field
-- [ ] Update task service with `searchTasks()` method
-- [ ] Implement search using PostgreSQL `@@` operator with `ts_vector`
-- [ ] Add search ranking by relevance (title matches weighted higher than description)
-- [ ] Implement search highlighting (return matched snippets)
-- [ ] Support multi-word queries with AND logic
-- [ ] Create search endpoint: `GET /api/v1/tasks/search?q=keyword`
-- [ ] Add pagination to search results
-- [ ] Write unit and integration tests
+- [ ] Create `static/js/state.js` module
+- [ ] Implement `EventBus` class with `on()`, `emit()`, `off()` methods
+- [ ] Implement `AppState` singleton class
+- [ ] Add state properties: `sessions`, `filters`, `currentSession`, `searchQuery`, `topics`
+- [ ] Implement `loadFromStorage()` to restore state from localStorage
+- [ ] Implement `saveToStorage()` to persist state
+- [ ] Add state update methods that emit events: `setFilters()`, `setSearchQuery()`, `setCurrentSession()`
+- [ ] Export global instances: `eventBus`, `appState`
 
 **Acceptance Criteria**:
-- [ ] Search matches tasks by title or description
-- [ ] Multi-word queries work correctly (AND logic)
-- [ ] Results ranked by relevance (title > description)
-- [ ] Search case-insensitive
-- [ ] Pagination works for search results
-- [ ] Minimum 2 characters required for search
-- [ ] Search queries complete in <300ms (95th percentile)
-- [ ] All tests pass with 80%+ coverage
+- GIVEN EventBus WHEN `emit('event', data)` is called THEN all listeners are notified
+- WHEN `appState.setFilters(newFilters)` THEN state is updated and `filters-changed` event is emitted
+- WHEN page is refreshed THEN state is restored from localStorage
 
 **Technical Notes**:
-- Use PostgreSQL's `to_tsvector` and `to_tsquery` functions
-- Create composite GIN index for both title and description
-- Consider using pg_trgm extension for fuzzy matching (post-MVP)
-- Debounce search on frontend (300ms)
-
-**Files to Create**:
-- `api/src/services/task.service.ts` (updated with searchTasks)
-- `api/src/controllers/task.controller.ts` (updated with search endpoint)
-- `api/prisma/migrations/YYYYMMDDHHMMSS_add_search_indexes/migration.sql`
-- `api/src/__tests__/services/task.service.search.test.ts`
+- Use Map for event listeners (event name → array of callbacks)
+- Use JSON.stringify/parse for localStorage serialization
+- Implement debounced save to avoid excessive localStorage writes
 
 ---
 
-### TASK-032: Search UI Component (Frontend)
-**ID**: TASK-032
-**Complexity**: M (Medium)
-**Effort**: 5 hours
-**Dependencies**: TASK-031 (API contract defined)
-**Priority**: Medium (MVP Nice-to-Have)
-**Assignee Profile**: Frontend developer
-**Can Run in Parallel**: Yes (after API contract is defined)
+### T2.5: Frontend - Router (Hash-Based Navigation)
+**Complexity**: Low
+**Effort**: 2 hours
+**Dependencies**: T1.9
+**Priority**: Medium
 
-**Description**: Create search bar component with real-time results, highlighting, and keyboard shortcuts.
+**Description**: Implement simple hash-based router for navigating between views (session list, detail, topics, analytics).
 
 **Subtasks**:
-- [ ] Create `/frontend/src/components/tasks/SearchBar.tsx`
-- [ ] Add search input in header with icon
-- [ ] Implement debounced search (300ms delay)
-- [ ] Fetch search results using React Query
-- [ ] Display results in dropdown with task titles highlighted
-- [ ] Show loading spinner during search
-- [ ] Handle empty results state ("No tasks found")
-- [ ] Clicking result opens task detail modal
-- [ ] Add keyboard shortcut "/" to focus search
-- [ ] Clear search when Escape pressed
-- [ ] Write component tests
+- [ ] Create `static/js/router.js` module
+- [ ] Implement `handleRoute()` function to parse `window.location.hash`
+- [ ] Define routes: `#/` (session list), `#/session/{id}` (detail), `#/topics` (topic manager), `#/analytics` (dashboard)
+- [ ] Add `hashchange` event listener to trigger route handling
+- [ ] Implement `navigate(path)` helper to programmatically change routes
+- [ ] Show/hide views based on current route
+- [ ] Update browser title based on current route
 
 **Acceptance Criteria**:
-- [ ] Search input debounces at 300ms
-- [ ] Results update in real-time as user types
-- [ ] Matching keywords highlighted in results
-- [ ] Loading state shown during search
-- [ ] Empty state shown when no results
-- [ ] Clicking result opens task detail
-- [ ] "/" keyboard shortcut focuses search
-- [ ] Escape clears search and closes dropdown
-- [ ] Component tests cover search flow
+- WHEN URL is `#/session/session_20251117_224304` THEN session detail view is shown
+- WHEN user clicks back button THEN previous view is restored
+- WHEN navigating between routes THEN correct view is displayed
 
 **Technical Notes**:
-- Use React Query with `enabled` option tied to query length > 2
-- Highlight matches with `<mark>` tag or custom highlighting
-- Use Downshift or Combobox pattern for accessible search
-- Consider recent searches or suggestions (post-MVP)
-
-**Files to Create**:
-- `frontend/src/components/tasks/SearchBar.tsx`
-- `frontend/src/components/tasks/SearchResults.tsx`
-- `frontend/src/hooks/useTaskSearch.ts`
-- `frontend/src/__tests__/components/tasks/SearchBar.test.tsx`
+- Use `window.location.hash` for current route
+- Use `document.title` for page title updates
+- Add view transition animations (optional, Phase 4)
 
 ---
 
-### TASK-033: Advanced Sorting Options (Backend & Frontend)
-**ID**: TASK-033
-**Complexity**: S (Small)
-**Effort**: 4 hours
-**Dependencies**: TASK-016
-**Priority**: Medium (MVP Nice-to-Have)
-**Assignee Profile**: Full-stack developer
-
-**Description**: Implement multi-field sorting with ascending/descending order for task list.
-
-**Subtasks**:
-- [ ] Update task service to accept `sort` query param (e.g., `sort=due_date:asc,priority:desc`)
-- [ ] Support sorting by: created_at, updated_at, due_date, priority, title, status
-- [ ] Implement multi-field sorting (primary and secondary sort)
-- [ ] Add sorting logic to Prisma query with `orderBy`
-- [ ] Create `/frontend/src/components/tasks/SortDropdown.tsx`
-- [ ] Add sort options: "Newest First", "Oldest First", "Due Date", "Priority", "Title (A-Z)"
-- [ ] Display active sort option in UI
-- [ ] Persist sort preference in URL params
-- [ ] Write tests for sorting logic
-
-**Acceptance Criteria**:
-- [ ] Tasks sorted correctly by all supported fields
-- [ ] Multi-field sorting works (e.g., priority desc, then due_date asc)
-- [ ] Sort dropdown shows all options
-- [ ] Active sort option highlighted
-- [ ] Sort preference persisted in URL
-- [ ] Sorting updates task list immediately
-- [ ] Tests verify all sort combinations
-
-**Technical Notes**:
-- Use URL query params for sort state
-- Default sort: `created_at:desc`
-- Validate sort fields on backend to prevent SQL injection
-- Consider custom sort orders (user-defined - post-MVP)
-
-**Files to Create**:
-- `api/src/utils/sorting.ts`
-- `frontend/src/components/tasks/SortDropdown.tsx`
-- `api/src/__tests__/utils/sorting.test.ts`
-
----
-
-### TASK-034: Saved Views/Filters (Optional - Post-MVP)
-**ID**: TASK-034
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-029
-**Priority**: Low (Post-MVP Enhancement)
-**Assignee Profile**: Full-stack developer
-
-**Description**: Allow users to save custom filter combinations as named views for quick access.
-
-**Subtasks**:
-- [ ] Create `SavedView` database model (user_id, name, filters JSON)
-- [ ] Implement saved view CRUD service and routes
-- [ ] Create "Save current view" button in UI
-- [ ] Display saved views in sidebar
-- [ ] Allow deleting saved views
-- [ ] Apply saved view filters when clicked
-- [ ] Write tests for saved views
-
-**Acceptance Criteria**:
-- [ ] Users can save current filter state with custom name
-- [ ] Saved views appear in sidebar
-- [ ] Clicking saved view applies all filters
-- [ ] Saved views can be deleted
-- [ ] Saved views persist across sessions
-
-**Technical Notes**:
-- Store filter state as JSON in database
-- Limit to 10 saved views per user
-- Consider sharing saved views with teams (post-MVP v2)
-
-**Files to Create**:
-- `api/src/services/savedView.service.ts`
-- `frontend/src/components/lists/SavedViews.tsx`
-
----
-
-### TASK-035: Search & Filtering Integration Testing
-**ID**: TASK-035
-**Complexity**: S (Small)
+### T2.6: Frontend - Integration (Connect Components)
+**Complexity**: Medium
 **Effort**: 3 hours
-**Dependencies**: TASK-032
-**Priority**: Medium (Quality Gate)
-**Assignee Profile**: Frontend or backend developer
+**Dependencies**: T2.1, T2.2, T2.3, T2.4, T2.5
+**Priority**: High
 
-**Description**: Write end-to-end tests for search functionality and advanced filtering.
+**Description**: Wire up all frontend components with EventBus, connect to API client, implement data flow.
 
 **Subtasks**:
-- [ ] Write E2E test: "User can search tasks by keyword"
-- [ ] Write E2E test: "Search highlights matching text"
-- [ ] Write E2E test: "User can sort tasks by different fields"
-- [ ] Write E2E test: "Multi-field sorting works correctly"
-- [ ] Write E2E test: "Search + filters combine correctly"
-- [ ] Add tests to CI/CD pipeline
+- [ ] Update `static/js/app.js` to initialize all components
+- [ ] Register custom elements: `customElements.define('session-list', SessionList)`
+- [ ] Set up EventBus listeners for filter changes, search queries, navigation
+- [ ] Connect filter panel to API: when filters change, fetch updated session list
+- [ ] Connect search bar to API: when query changes, fetch search results
+- [ ] Connect session list to router: when session clicked, navigate to detail view
+- [ ] Implement loading states (show spinner during API calls)
+- [ ] Implement error states (show error message on API failure)
 
 **Acceptance Criteria**:
-- [ ] All E2E tests pass locally and in CI
-- [ ] Tests cover search with various keywords
-- [ ] Tests verify sorting correctness
-- [ ] Tests confirm search + filter combination
+- WHEN user selects filter THEN session list updates automatically
+- WHEN user searches THEN results are displayed with highlighted snippets
+- WHEN API call fails THEN error message is displayed to user
 
 **Technical Notes**:
-- Seed database with diverse task data for comprehensive testing
-- Test edge cases: empty search, special characters, very long queries
-
-**Files to Create**:
-- `e2e/tests/search.spec.ts`
+- Use async/await for API calls
+- Use try-catch for error handling
+- Show loading spinner during fetch operations
 
 ---
 
-## Phase 6: UI Polish & Testing
+### T2.7: Unit Tests - Search Engine
+**Complexity**: Medium
+**Effort**: 2 hours
+**Dependencies**: T1.7, T2.1
+**Priority**: Medium
 
-**Duration**: 7 days
-**Effort**: 56-80 hours
-**Goal**: Finalize UI, implement responsive design, accessibility, and comprehensive testing
-
----
-
-### TASK-036: Responsive Design Implementation
-**ID**: TASK-036
-**Complexity**: L (Large)
-**Effort**: 10 hours
-**Dependencies**: TASK-021
-**Priority**: High (MVP Critical)
-**Assignee Profile**: Frontend developer
-
-**Description**: Ensure all components are fully responsive across mobile, tablet, and desktop with mobile-first approach.
+**Description**: Write unit tests for search engine functions (FTS5 queries, filter logic).
 
 **Subtasks**:
-- [ ] Audit all components on mobile (375px), tablet (768px), desktop (1920px)
-- [ ] Implement mobile hamburger menu for sidebar navigation
-- [ ] Convert desktop modals to full-screen on mobile
-- [ ] Make task cards stack vertically on mobile
-- [ ] Ensure touch-friendly tap targets (min 44x44px)
-- [ ] Test horizontal scrolling issues
-- [ ] Implement responsive typography (fluid font sizes)
-- [ ] Add swipe gestures for mobile (optional - delete task swipe)
-- [ ] Test on real devices (iOS Safari, Android Chrome)
-- [ ] Fix any layout breaks
+- [ ] Create `tests/test_search.py`
+- [ ] Test `search_transcripts(query)` with various queries (keyword, phrase, boolean)
+- [ ] Test `build_inverted_index()` with sample data
+- [ ] Test filter logic (single filter, combined filters)
+- [ ] Test ranking (verify BM25 scores are correct)
+- [ ] Test edge cases (empty query, no results, special characters)
 
 **Acceptance Criteria**:
-- [ ] All pages render correctly on mobile, tablet, desktop
-- [ ] Sidebar collapses to hamburger menu on mobile
-- [ ] Forms usable on mobile without zooming
-- [ ] Tap targets meet 44x44px minimum
-- [ ] No horizontal scrolling on any viewport
-- [ ] Typography scales appropriately
-- [ ] Tested on iOS Safari and Android Chrome
-- [ ] No layout shifts or broken UI elements
+- WHEN running search tests THEN FTS5 queries return correct results
+- WHEN testing filter logic THEN set intersections are correct
+- WHEN testing edge cases THEN no crashes occur
 
 **Technical Notes**:
-- Use TailwindCSS responsive utilities (sm:, md:, lg:, xl:)
-- Test on Chrome DevTools device emulator
-- Use BrowserStack for real device testing (optional)
-- Consider PWA manifest for "Add to Home Screen" (post-MVP)
-
-**Files to Create/Update**:
-- `frontend/src/components/layout/MobileMenu.tsx`
-- Update all component styles for responsiveness
+- Use in-memory SQLite for test database
+- Seed database with known test data
+- Verify result ordering (ranked by relevance)
 
 ---
 
-### TASK-037: Accessibility (A11y) Audit & Fixes
-**ID**: TASK-037
-**Complexity**: M (Medium)
-**Effort**: 8 hours
-**Dependencies**: TASK-036
-**Priority**: High (MVP Critical - NFR-005)
-**Assignee Profile**: Frontend developer with A11y knowledge
+## Phase 3: Analytics & Topics
 
-**Description**: Conduct accessibility audit and implement WCAG 2.1 Level AA compliance across all components.
+### T3.1: Analytics Data Aggregation
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.2, T1.5
+**Priority**: High
+
+**Description**: Implement SQL queries to aggregate statistics for analytics dashboard.
 
 **Subtasks**:
-- [ ] Run Axe DevTools scan on all pages
-- [ ] Add ARIA labels to all interactive elements
-- [ ] Implement keyboard navigation for all features (Tab, Enter, Escape, Arrows)
-- [ ] Add focus indicators (visible outline on focused elements)
-- [ ] Ensure color contrast ratios meet WCAG AA (4.5:1 for text)
+- [ ] Add `src/analytics.py` module
+- [ ] Implement `get_overview_stats()` function: total sessions, date range, total tool calls, unique tools/agents
+- [ ] Implement `get_tool_usage_distribution()` function: tool name and count, sorted by frequency
+- [ ] Implement `get_agent_usage_distribution()` function: agent name and count
+- [ ] Implement `get_sessions_timeline()` function: sessions per day/week/month
+- [ ] Implement `get_skill_activation_stats()` function: skill usage over time
+- [ ] Optimize queries with indexes and aggregations
+- [ ] Cache results for 5 minutes (use `@lru_cache` with TTL)
+
+**Acceptance Criteria**:
+- WHEN `get_overview_stats()` is called THEN correct totals are returned
+- WHEN querying 10,000 sessions THEN aggregation completes in < 1 second
+- WHEN data hasn't changed THEN cached results are returned instantly
+
+**Technical Notes**:
+- Use SQL `GROUP BY` and `COUNT()` for aggregations
+- Use `DATE()` function for grouping by date
+- Use `WITH` clause (CTE) for complex queries
+
+---
+
+### T3.2: API Endpoints - Analytics
+**Complexity**: Low
+**Effort**: 2 hours
+**Dependencies**: T3.1, T1.8
+**Priority**: High
+
+**Description**: Add API endpoints for analytics dashboard data.
+
+**Subtasks**:
+- [ ] Implement `GET /api/analytics/overview` endpoint
+- [ ] Implement `GET /api/analytics/tool-usage` endpoint
+- [ ] Implement `GET /api/analytics/agent-usage` endpoint
+- [ ] Implement `GET /api/analytics/timeline?period={day|week|month}` endpoint
+- [ ] Add response caching (5 minute TTL)
+- [ ] Add error handling
+
+**Acceptance Criteria**:
+- WHEN `GET /api/analytics/overview` THEN summary statistics are returned
+- WHEN `GET /api/analytics/tool-usage` THEN tool distribution data is returned in format suitable for Chart.js
+- WHEN endpoint is called multiple times THEN cached response is served (verify with timing logs)
+
+**Technical Notes**:
+- Return data in Chart.js-compatible format: `{ labels: [...], datasets: [...] }`
+- Use FastAPI response caching or manual caching with TTL
+
+---
+
+### T3.3: Frontend - Analytics Dashboard Component
+**Complexity**: High
+**Effort**: 5 hours
+**Dependencies**: T3.2, T1.9, T1.10
+**Priority**: High
+
+**Description**: Implement analytics dashboard with charts using Chart.js.
+
+**Subtasks**:
+- [ ] Download Chart.js library to `static/lib/chart.min.js`
+- [ ] Create `static/js/components/analytics-dashboard.js`
+- [ ] Define `<analytics-dashboard>` custom element
+- [ ] Fetch analytics data from API endpoints
+- [ ] Render overview statistics (total sessions, tool calls, date range) in cards
+- [ ] Create bar chart for tool usage distribution
+- [ ] Create pie chart for agent usage distribution
+- [ ] Create line chart for sessions timeline
+- [ ] Add date range selector for timeline (last 7 days, 30 days, all time)
+- [ ] Add chart export button (download as PNG)
+
+**Acceptance Criteria**:
+- GIVEN analytics dashboard WHEN loaded THEN all charts render correctly
+- WHEN hovering over chart THEN tooltip shows data values
+- WHEN clicking export THEN chart is downloaded as PNG
+
+**Technical Notes**:
+- Use Chart.js (https://www.chartjs.org/)
+- Use `<canvas>` elements for charts
+- Use `chart.toBase64Image()` for export functionality
+
+---
+
+### T3.4: Topic Management - Backend Schema and API
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.2, T1.8
+**Priority**: High
+
+**Description**: Implement topic management API endpoints for creating, updating, and tagging sessions.
+
+**Subtasks**:
+- [ ] Implement `GET /api/topics` endpoint (list all topics)
+- [ ] Implement `POST /api/topics` endpoint (create new topic)
+- [ ] Implement `PUT /api/topics/{id}` endpoint (update topic name/description)
+- [ ] Implement `DELETE /api/topics/{id}` endpoint (delete topic)
+- [ ] Implement `POST /api/topics/{topic_id}/sessions/{session_id}` endpoint (tag session)
+- [ ] Implement `DELETE /api/topics/{topic_id}/sessions/{session_id}` endpoint (untag session)
+- [ ] Implement `GET /api/topics/{id}/sessions` endpoint (list sessions in topic)
+- [ ] Add validation: topic name must be unique, session must exist
+- [ ] Use database transactions for consistency
+
+**Acceptance Criteria**:
+- WHEN `POST /api/topics` with name="MCP Research" THEN topic is created
+- WHEN tagging session with topic THEN session_topics junction table is updated
+- WHEN deleting topic THEN all associated session_topics entries are cascade deleted
+- WHEN creating duplicate topic name THEN 400 error is returned
+
+**Technical Notes**:
+- Use Pydantic models for request validation
+- Use SQLite foreign keys with CASCADE DELETE
+- Return topic with session count in list endpoint
+
+---
+
+### T3.5: Topic Suggestion Algorithm (Keyword Similarity)
+**Complexity**: High
+**Effort**: 4 hours
+**Dependencies**: T3.4
+**Priority**: Medium
+
+**Description**: Implement algorithm to suggest related sessions when tagging a topic based on keyword similarity.
+
+**Subtasks**:
+- [ ] Add function `suggest_related_sessions(session_id, limit=10)` to `src/search_engine.py`
+- [ ] Extract keywords from session transcript (use simple TF-IDF or word frequency)
+- [ ] Query FTS5 index for sessions with similar keywords
+- [ ] Calculate similarity score (cosine similarity or simple keyword overlap)
+- [ ] Return top N most similar sessions
+- [ ] Implement `GET /api/topics/{topic_id}/suggest?session_id={id}` endpoint
+
+**Acceptance Criteria**:
+- GIVEN session about "MCP servers" WHEN suggesting related sessions THEN other MCP-related sessions are ranked high
+- WHEN suggesting for new session THEN top 10 suggestions are returned in < 1 second
+
+**Technical Notes**:
+- Use simple keyword extraction: remove stopwords, count word frequency
+- For Phase 1, use FTS5 MATCH query with extracted keywords
+- For Phase 2+, consider using scikit-learn TfidfVectorizer
+
+---
+
+### T3.6: Frontend - Topic Manager Component
+**Complexity**: High
+**Effort**: 5 hours
+**Dependencies**: T3.4, T3.5, T1.9, T1.10
+**Priority**: High
+
+**Description**: Implement topic management UI with creation, tagging, and suggestion features.
+
+**Subtasks**:
+- [ ] Create `static/js/components/topic-manager.js`
+- [ ] Define `<topic-manager>` custom element
+- [ ] Render topic list as cards (3-column grid)
+- [ ] Add "Create New Topic" button with modal form
+- [ ] Implement topic creation form (name, description)
+- [ ] Implement session tagging interface (dropdown of topics, multi-select)
+- [ ] Show suggested sessions when tagging (fetch from API)
+- [ ] Implement topic detail view (list of tagged sessions)
+- [ ] Add edit and delete buttons for topics
+- [ ] Add confirmation dialog for topic deletion
+
+**Acceptance Criteria**:
+- WHEN user creates topic THEN it appears in topic list
+- WHEN tagging session THEN suggested related sessions are displayed
+- WHEN viewing topic detail THEN all tagged sessions are listed
+- WHEN deleting topic THEN confirmation dialog is shown
+
+**Technical Notes**:
+- Use modal dialog for topic creation/edit forms
+- Use drag-and-drop for tagging (optional, can use dropdown)
+- Use color-coded topic tags for visual distinction
+
+---
+
+### T3.7: Export Functionality - CSV, Markdown, JSON
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.8, T3.4
+**Priority**: Medium
+
+**Description**: Implement export endpoints for sessions and topics in multiple formats.
+
+**Subtasks**:
+- [ ] Create `src/export.py` module
+- [ ] Implement `export_sessions_csv(sessions)` function
+- [ ] Implement `export_session_markdown(session_id)` function
+- [ ] Implement `export_topic_json(topic_id)` function
+- [ ] Add `GET /api/export/sessions.csv?filters={...}` endpoint
+- [ ] Add `GET /api/export/session/{id}.md` endpoint
+- [ ] Add `GET /api/export/topic/{id}.json` endpoint
+- [ ] Set correct Content-Type headers: `text/csv`, `text/markdown`, `application/json`
+- [ ] Set Content-Disposition header for file download: `attachment; filename="..."`
+
+**Acceptance Criteria**:
+- WHEN `GET /api/export/sessions.csv` THEN CSV file is downloaded with correct columns
+- WHEN `GET /api/export/session/{id}.md` THEN Markdown file with formatted transcript is downloaded
+- WHEN opening exported CSV in Excel THEN data is properly formatted
+
+**Technical Notes**:
+- Use Python `csv` module for CSV generation
+- Use f-strings for Markdown formatting
+- Include session metadata in exports (date, tools, agents)
+
+---
+
+### T3.8: End-to-End Tests - User Workflows
+**Complexity**: High
+**Effort**: 4 hours
+**Dependencies**: T2.6, T3.6
+**Priority**: Medium
+
+**Description**: Write end-to-end tests for critical user workflows using browser automation.
+
+**Subtasks**:
+- [ ] Set up Playwright or Selenium for browser automation
+- [ ] Create `tests/test_e2e.py`
+- [ ] Test workflow: Browse sessions → View session detail
+- [ ] Test workflow: Search by keyword → View result
+- [ ] Test workflow: Apply filter → View filtered results
+- [ ] Test workflow: Create topic → Tag session → View topic detail
+- [ ] Test workflow: Export session as Markdown → Verify file content
+- [ ] Take screenshots on test failure for debugging
+
+**Acceptance Criteria**:
+- WHEN running E2E tests THEN all critical workflows complete successfully
+- WHEN test fails THEN screenshot is saved for debugging
+- WHEN running full test suite THEN all tests pass in < 5 minutes
+
+**Technical Notes**:
+- Use Playwright for fast, reliable browser automation
+- Use headless mode for CI/CD integration
+- Use test database seeded with known data
+
+---
+
+## Phase 4: Optimization & Polish
+
+### T4.1: Implement Virtual Scrolling for Session List
+**Complexity**: High
+**Effort**: 4 hours
+**Dependencies**: T1.11
+**Priority**: Medium
+
+**Description**: Replace simple pagination with virtual scrolling to handle 1000+ results smoothly.
+
+**Subtasks**:
+- [ ] Update `session-list` component to use virtual scrolling
+- [ ] Calculate visible viewport (number of visible rows)
+- [ ] Render only visible rows + 20 buffer rows (10 above, 10 below)
+- [ ] Update scroll event listener to dynamically load rows as user scrolls
+- [ ] Maintain scroll position when data updates
+- [ ] Add "Load More" button at bottom for infinite scroll pattern
+
+**Acceptance Criteria**:
+- GIVEN 1000 search results WHEN scrolling THEN UI remains responsive (60fps)
+- WHEN scrolling quickly THEN no blank rows are visible (proper buffering)
+- WHEN data updates THEN scroll position is maintained
+
+**Technical Notes**:
+- Use `IntersectionObserver` API for detecting scroll position
+- Use `transform: translateY()` for row positioning (better performance than absolute positioning)
+- Measure row height dynamically (rows may vary slightly)
+
+---
+
+### T4.2: Optimize Incremental Indexing
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.5
+**Priority**: High
+
+**Description**: Improve incremental indexing performance with parallelization and better caching.
+
+**Subtasks**:
+- [ ] Use `multiprocessing.Pool` to parse log files in parallel (4 workers)
+- [ ] Batch database inserts (1000 records per transaction)
+- [ ] Add progress indicator (e.g., "Indexing 342/500 sessions...")
+- [ ] Cache parsed file mtimes in database to avoid filesystem checks
+- [ ] Skip re-parsing files that haven't changed (compare mtime)
+- [ ] Log indexing performance metrics (files/second, total time)
+
+**Acceptance Criteria**:
+- GIVEN 1000 new log files WHEN indexing THEN processing completes in < 20 seconds
+- WHEN re-running indexing with no new files THEN completes in < 2 seconds (mtime check only)
+- WHEN indexing THEN progress is displayed in console
+
+**Technical Notes**:
+- Use `multiprocessing.Pool.map()` for parallel processing
+- Use `executemany()` for batch inserts
+- Be careful with SQLite threading (use separate connections per worker)
+
+---
+
+### T4.3: Add Caching Layer (Server-Side)
+**Complexity**: Medium
+**Effort**: 2 hours
+**Dependencies**: T1.8, T3.2
+**Priority**: Medium
+
+**Description**: Implement server-side caching for frequently accessed data (filter options, analytics).
+
+**Subtasks**:
+- [ ] Add `@lru_cache` decorator to filter dropdown functions
+- [ ] Add TTL-based caching for analytics endpoints (5 minute expiry)
+- [ ] Add cache invalidation when new logs are indexed
+- [ ] Add cache statistics logging (hit rate, miss rate)
+- [ ] Add `Cache-Control` headers to API responses
+
+**Acceptance Criteria**:
+- WHEN filter dropdown is requested multiple times THEN cached response is served (verify with logs)
+- WHEN new logs are indexed THEN filter cache is invalidated
+- WHEN analytics endpoint is called within 5 minutes THEN cached data is returned
+
+**Technical Notes**:
+- Use `functools.lru_cache` for in-memory caching
+- Use time-based cache invalidation (store cache time, check age)
+- Add `Cache-Control: max-age=300` header for client-side caching
+
+---
+
+### T4.4: Error Handling and User Feedback
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: T1.8, T2.6
+**Priority**: High
+
+**Description**: Improve error handling across backend and frontend with clear user feedback.
+
+**Subtasks**:
+- [ ] Add global error handler middleware to FastAPI app
+- [ ] Return structured error responses: `{"error": "message", "details": "..."}`
+- [ ] Add error logging to file: `web-viewer/logs/errors.log`
+- [ ] Update API client to display user-friendly error messages
+- [ ] Add toast notification component for transient messages
+- [ ] Show error state in UI (red banner, error icon)
+- [ ] Add retry button for failed API calls
+- [ ] Log errors to browser console with stack traces
+
+**Acceptance Criteria**:
+- WHEN API returns error THEN user sees clear error message (not raw JSON)
+- WHEN network fails THEN user sees "Network error, please retry" message
+- WHEN error occurs THEN error is logged to server log file
+
+**Technical Notes**:
+- Use FastAPI exception handlers: `@app.exception_handler(Exception)`
+- Use custom error classes for different error types (ValidationError, NotFoundError)
+- Use toast library or build simple notification component
+
+---
+
+### T4.5: Performance Profiling and Optimization
+**Complexity**: Medium
+**Effort**: 3 hours
+**Dependencies**: All previous tasks
+**Priority**: Medium
+
+**Description**: Profile application performance and optimize bottlenecks.
+
+**Subtasks**:
+- [ ] Add performance logging to API endpoints (request duration)
+- [ ] Use `cProfile` to profile Python code (identify slow functions)
+- [ ] Use browser DevTools to profile frontend rendering (identify reflows)
+- [ ] Optimize slow SQL queries (add missing indexes)
+- [ ] Reduce JavaScript bundle size (remove unused code)
+- [ ] Optimize image assets (compress, use WebP)
+- [ ] Add performance metrics to health check endpoint
+
+**Acceptance Criteria**:
+- WHEN profiling backend THEN no function takes >1 second for typical request
+- WHEN profiling frontend THEN main thread is not blocked >100ms
+- WHEN loading session list THEN First Contentful Paint < 1.5s
+
+**Technical Notes**:
+- Use `time.perf_counter()` for timing measurements
+- Use SQLite `EXPLAIN QUERY PLAN` to verify index usage
+- Use Chrome Lighthouse for frontend performance audit
+
+---
+
+### T4.6: Documentation - API Documentation
+**Complexity**: Low
+**Effort**: 2 hours
+**Dependencies**: T1.8
+**Priority**: Medium
+
+**Description**: Generate and publish API documentation using FastAPI's built-in OpenAPI support.
+
+**Subtasks**:
+- [ ] Add docstrings to all API endpoint functions
+- [ ] Add Pydantic model descriptions and examples
+- [ ] Customize OpenAPI schema title and description
+- [ ] Add API versioning to URL path: `/api/v1/...`
+- [ ] Test auto-generated docs at `/docs` (Swagger UI)
+- [ ] Add example requests and responses to docs
+
+**Acceptance Criteria**:
+- WHEN visiting `http://localhost:8080/docs` THEN API documentation is displayed
+- WHEN viewing endpoint THEN request/response schemas are documented
+- WHEN testing in Swagger UI THEN all endpoints are functional
+
+**Technical Notes**:
+- FastAPI generates OpenAPI docs automatically
+- Use Pydantic `Field(description="...")` for field docs
+- Use `@app.get(..., summary="...", description="...")` for endpoint docs
+
+---
+
+### T4.7: Security Hardening
+**Complexity**: Medium
+**Effort**: 2 hours
+**Dependencies**: T1.8
+**Priority**: High
+
+**Description**: Implement security best practices for local web application.
+
+**Subtasks**:
+- [ ] Bind server to 127.0.0.1 only (not 0.0.0.0)
+- [ ] Add CORS headers restricting origin to localhost:8080
+- [ ] Implement input validation for all API parameters (use Pydantic)
+- [ ] Sanitize search queries (escape SQL special characters)
+- [ ] Implement HTML escaping in frontend (prevent XSS)
+- [ ] Add rate limiting to search endpoint (10 requests/minute)
+- [ ] Validate session_id format (match regex: `session_\d{8}_\d{6}`)
+- [ ] Add Content Security Policy headers
+
+**Acceptance Criteria**:
+- WHEN accessing from external IP THEN connection is refused
+- WHEN injecting SQL in search query THEN query is safely escaped
+- WHEN rendering user content THEN HTML tags are escaped
+
+**Technical Notes**:
+- Use FastAPI `Query()` validator for parameter validation
+- Use `html.escape()` for HTML sanitization
+- Use parameterized SQL queries (SQLite protection)
+- Use `slowapi` library for rate limiting
+
+---
+
+### T4.8: Accessibility Improvements
+**Complexity**: Medium
+**Effort**: 2 hours
+**Dependencies**: T1.9, T1.10
+**Priority**: Low
+
+**Description**: Improve accessibility for keyboard navigation and screen readers.
+
+**Subtasks**:
+- [ ] Add ARIA labels to interactive elements
+- [ ] Add focus styles for keyboard navigation
+- [ ] Ensure proper heading hierarchy (h1 → h2 → h3)
+- [ ] Add skip-to-content link
+- [ ] Test with keyboard only (Tab navigation)
+- [ ] Test with screen reader (VoiceOver on macOS)
+- [ ] Ensure color contrast meets WCAG AA standards
 - [ ] Add alt text to all images/icons
-- [ ] Implement skip-to-content link for keyboard users
-- [ ] Test with screen reader (NVDA or VoiceOver)
-- [ ] Add semantic HTML (header, nav, main, footer)
-- [ ] Fix any violations found in Axe scan
-- [ ] Document accessibility features in README
 
 **Acceptance Criteria**:
-- [ ] Axe DevTools reports zero violations
-- [ ] All interactive elements keyboard accessible
-- [ ] Focus indicators visible on all focusable elements
-- [ ] Color contrast ratios ≥4.5:1 for normal text, ≥3:1 for large text
-- [ ] Screen reader announces all UI changes correctly
-- [ ] ARIA labels descriptive and accurate
-- [ ] Skip-to-content link functional
-- [ ] Semantic HTML used throughout
-- [ ] Accessibility documented
+- WHEN navigating with Tab key THEN all interactive elements are reachable
+- WHEN using screen reader THEN all content is announced correctly
+- WHEN checking color contrast THEN all text meets WCAG AA ratio (4.5:1 for normal text)
 
 **Technical Notes**:
-- Use Axe DevTools browser extension for automated testing
-- Test with NVDA (Windows) or VoiceOver (Mac)
-- Use headlessUI components for accessible primitives
-- Add `aria-live` regions for dynamic content updates
-
-**Files to Create/Update**:
-- `docs/ACCESSIBILITY.md`
-- Update all components with ARIA attributes
+- Use semantic HTML (`<nav>`, `<main>`, `<button>`)
+- Use `aria-label` for icon buttons
+- Use `role` attribute where appropriate
+- Test with Chrome DevTools Lighthouse accessibility audit
 
 ---
 
-### TASK-038: Loading States & Error Handling UI
-**ID**: TASK-038
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-017
-**Priority**: High (MVP Critical - NFR-005)
-**Assignee Profile**: Frontend developer
+### T4.9: Deployment Script and Startup Automation
+**Complexity**: Low
+**Effort**: 2 hours
+**Dependencies**: T1.8
+**Priority**: Medium
 
-**Description**: Implement consistent loading states, error boundaries, and user-friendly error messages across the application.
+**Description**: Create startup script that launches server and opens browser automatically.
 
 **Subtasks**:
-- [ ] Create loading skeleton components for task list, task detail
-- [ ] Add loading spinners for buttons during async operations
-- [ ] Create error boundary component for React errors
-- [ ] Implement global error toast notification system
-- [ ] Create user-friendly error messages (map API errors to readable text)
-- [ ] Add retry buttons for failed requests
-- [ ] Implement offline detection and warning banner
-- [ ] Add success notifications for CRUD operations
-- [ ] Test all error scenarios (network failure, validation errors, 500 errors)
-- [ ] Write component tests for error states
+- [ ] Create `scripts/start.sh` (Unix/macOS)
+- [ ] Create `scripts/start.bat` (Windows)
+- [ ] Check if virtual environment exists, create if not
+- [ ] Install dependencies if requirements.txt changed
+- [ ] Start FastAPI server in background
+- [ ] Wait for server to be ready (poll health check endpoint)
+- [ ] Open browser to `http://localhost:8080`
+- [ ] Add Ctrl+C handler to gracefully stop server
 
 **Acceptance Criteria**:
-- [ ] Loading skeletons shown during data fetching
-- [ ] Buttons show loading spinner during operations
-- [ ] Error boundary catches and displays React errors gracefully
-- [ ] Toast notifications shown for all errors and successes
-- [ ] Error messages are user-friendly (no technical jargon)
-- [ ] Retry buttons work correctly
-- [ ] Offline banner appears when network disconnected
-- [ ] All error scenarios tested and handled
+- WHEN running `./scripts/start.sh` THEN server starts and browser opens automatically
+- WHEN pressing Ctrl+C THEN server stops gracefully
+- WHEN dependencies are missing THEN script installs them automatically
 
 **Technical Notes**:
-- Use react-hot-toast or similar for toast notifications
-- Create reusable Skeleton component with shimmer animation
-- Map HTTP status codes to user messages (400 → validation, 401 → auth, 500 → server error)
-- Use React Query's `onError` callbacks for global error handling
-
-**Files to Create**:
-- `frontend/src/components/shared/ErrorBoundary.tsx`
-- `frontend/src/components/shared/Skeleton.tsx`
-- `frontend/src/components/shared/Toast.tsx`
-- `frontend/src/utils/errorMessages.ts`
+- Use `python -m webbrowser` to open browser
+- Use `curl` or `wget` to poll health check endpoint
+- Use `trap` (Unix) or `@echo off` (Windows) for signal handling
 
 ---
 
-### TASK-039: Performance Optimization
-**ID**: TASK-039
-**Complexity**: M (Medium)
-**Effort**: 8 hours
-**Dependencies**: TASK-036
-**Priority**: High (MVP Critical - NFR-001)
-**Assignee Profile**: Full-stack developer
+### T4.10: Final Testing and Bug Fixes
+**Complexity**: High
+**Effort**: 4 hours
+**Dependencies**: All previous tasks
+**Priority**: Critical
 
-**Description**: Optimize frontend bundle size, implement code splitting, and ensure performance targets met (<2s load, <200ms API).
+**Description**: Comprehensive testing of all features, fix identified bugs, ensure production readiness.
 
 **Subtasks**:
-- [ ] Analyze bundle size with Vite's build analyzer
-- [ ] Implement route-based code splitting for all pages
-- [ ] Lazy load heavy components (modals, date picker)
-- [ ] Optimize images (WebP format, lazy loading)
-- [ ] Add service worker for static asset caching (optional)
-- [ ] Minimize and tree-shake dependencies
-- [ ] Configure React Query cache settings (staleTime, cacheTime)
-- [ ] Implement virtualization for task list (react-window)
-- [ ] Add database query analysis (EXPLAIN) for slow queries
-- [ ] Run Lighthouse audit and fix performance issues
-- [ ] Set up Lighthouse CI in GitHub Actions
+- [ ] Run full test suite (unit, integration, E2E)
+- [ ] Manual testing of all user workflows
+- [ ] Test with 10,000+ session dataset
+- [ ] Test on different browsers (Chrome, Firefox, Safari, Edge)
+- [ ] Test on different OS (macOS, Linux, Windows)
+- [ ] Fix any identified bugs
+- [ ] Verify performance targets are met (< 3s load, < 2s search)
+- [ ] Update README with any new findings or requirements
 
 **Acceptance Criteria**:
-- [ ] Initial JS bundle <200KB gzipped
-- [ ] Lighthouse performance score >90
-- [ ] First Contentful Paint <1.5s
-- [ ] Time to Interactive <3s
-- [ ] API response times <200ms (p95)
-- [ ] Task list handles 1,000+ tasks smoothly
-- [ ] No blocking main thread >50ms
-- [ ] Lighthouse CI runs on every PR
+- WHEN running all tests THEN 100% pass rate
+- WHEN testing with 10,000 sessions THEN all performance targets are met
+- WHEN testing on all browsers THEN UI renders correctly and functionality works
+- WHEN following README setup THEN application starts without errors
 
 **Technical Notes**:
-- Use Vite's `rollupOptions.output.manualChunks` for code splitting
-- Use React.lazy and Suspense for route components
-- Configure React Query `staleTime: 5 min`, `cacheTime: 30 min`
-- Use `loading="lazy"` for images
-- Implement memoization (React.memo, useMemo) for expensive components
-
-**Files to Create/Update**:
-- `frontend/vite.config.ts` (updated with optimization settings)
-- `.github/workflows/lighthouse.yml`
-- `lighthouse-budget.json`
-
----
-
-### TASK-040: Unit & Integration Test Coverage
-**ID**: TASK-040
-**Complexity**: L (Large)
-**Effort**: 12 hours
-**Dependencies**: TASK-039
-**Priority**: High (MVP Critical - NFR-006)
-**Assignee Profile**: Backend and frontend developers
-
-**Description**: Achieve 80% code coverage for backend and frontend with comprehensive unit and integration tests.
-
-**Subtasks**:
-- [ ] Write backend unit tests for all services (auth, task, list, tag)
-- [ ] Write backend integration tests for all API routes
-- [ ] Write frontend unit tests for all components (80% coverage)
-- [ ] Write frontend integration tests for user flows
-- [ ] Set up test coverage reporting (Vitest coverage)
-- [ ] Configure coverage thresholds in CI (fail if <80%)
-- [ ] Mock external dependencies (database, Redis, API)
-- [ ] Test edge cases and error scenarios
-- [ ] Review and improve existing tests
-- [ ] Generate coverage report and badge
-
-**Acceptance Criteria**:
-- [ ] Backend code coverage ≥80%
-- [ ] Frontend code coverage ≥80%
-- [ ] All critical paths covered by tests
-- [ ] CI fails if coverage drops below threshold
-- [ ] Coverage report generated on every PR
-- [ ] No flaky tests (deterministic results)
-- [ ] All tests run in <3 minutes
-
-**Technical Notes**:
-- Use Vitest for both backend and frontend testing
-- Use `c8` or `v8` for coverage reporting
-- Mock Prisma client with `prisma-mock` or manual mocks
-- Mock Axios requests with MSW (Mock Service Worker)
-- Configure `vitest.config.ts` with coverage thresholds
-
-**Files to Create**:
-- `api/src/__tests__/**/*.test.ts` (comprehensive tests)
-- `frontend/src/__tests__/**/*.test.tsx` (comprehensive tests)
-- `vitest.config.ts` (coverage settings)
-
----
-
-### TASK-041: Documentation & Developer Onboarding
-**ID**: TASK-041
-**Complexity**: M (Medium)
-**Effort**: 6 hours
-**Dependencies**: TASK-040
-**Priority**: Medium (Developer Experience)
-**Assignee Profile**: Any developer
-
-**Description**: Write comprehensive documentation for setup, development, deployment, and API usage.
-
-**Subtasks**:
-- [ ] Update README with complete setup instructions
-- [ ] Document environment variables in `.env.example`
-- [ ] Write API documentation with OpenAPI/Swagger spec
-- [ ] Create developer onboarding guide
-- [ ] Document database schema and migrations
-- [ ] Write deployment guide (Railway, DigitalOcean)
-- [ ] Document testing strategy and how to run tests
-- [ ] Add troubleshooting section to docs
-- [ ] Create architecture diagram (Mermaid or draw.io)
-- [ ] Document CI/CD pipeline
-
-**Acceptance Criteria**:
-- [ ] New developer can set up project in <30 minutes following README
-- [ ] All environment variables documented
-- [ ] API documentation complete and accurate
-- [ ] Deployment guide tested and functional
-- [ ] Troubleshooting covers common issues
-- [ ] Architecture diagram up-to-date
-
-**Technical Notes**:
-- Use Swagger UI or Redoc for API docs
-- Generate OpenAPI spec from code (tsoa or similar)
-- Include example requests/responses
-- Add code snippets for common tasks
-
-**Files to Create**:
-- `README.md` (updated)
-- `docs/SETUP.md`
-- `docs/API.md` or Swagger JSON
-- `docs/DEPLOYMENT.md`
-- `docs/ARCHITECTURE.md`
-- `docs/TESTING.md`
-
----
-
-### TASK-042: Production Deployment & Monitoring Setup
-**ID**: TASK-042
-**Complexity**: L (Large)
-**Effort**: 10 hours
-**Dependencies**: TASK-041
-**Priority**: High (Deployment Critical)
-**Assignee Profile**: Developer with DevOps experience
-
-**Description**: Deploy application to production, configure monitoring, alerting, and backup systems.
-
-**Subtasks**:
-- [ ] Set up production environment on Railway.app or DigitalOcean
-- [ ] Configure production database with automated backups
-- [ ] Set up Redis for production (Upstash)
-- [ ] Configure environment variables in production
-- [ ] Set up CloudFlare CDN for static assets
-- [ ] Configure custom domain and SSL certificate
-- [ ] Set up UptimeRobot for uptime monitoring
-- [ ] Configure Sentry for error tracking
-- [ ] Set up database backup automation (daily + weekly)
-- [ ] Create production deployment runbook
-- [ ] Test backup restoration process
-- [ ] Configure alerting (email/Slack for downtime)
-
-**Acceptance Criteria**:
-- [ ] Application accessible at production URL with SSL
-- [ ] Database backups run automatically (verified)
-- [ ] Uptime monitoring active with <5min check interval
-- [ ] Error tracking captures and reports production errors
-- [ ] CDN serves static assets with correct cache headers
-- [ ] Backup restoration tested successfully
-- [ ] Alerting sends notifications for downtime
-- [ ] Production runbook documented
-
-**Technical Notes**:
-- Use Railway.app for easy deployment (git-push deploys)
-- Configure PostgreSQL daily backups with 30-day retention
-- Use CloudFlare free tier for CDN and DDoS protection
-- Set up Sentry free tier for error tracking
-- Configure UptimeRobot free tier (50 monitors, 5-min checks)
-
-**Files to Create**:
-- `.do/app.yaml` or `railway.toml`
-- `docs/RUNBOOK.md`
-- `docs/BACKUP_RESTORE.md`
-- Production environment configuration
+- Use automated testing where possible
+- Document any known issues or limitations
+- Prioritize critical bugs (crashes, data loss) over cosmetic issues
 
 ---
 
@@ -1980,366 +1376,184 @@
 ### Technical Risks
 
 | Risk ID | Risk Description | Severity | Probability | Impact | Mitigation Strategy |
-|---------|------------------|----------|-------------|--------|---------------------|
-| **R-001** | Database performance degrades with >100K tasks | High | Medium | Users experience slow queries (>2s) | Implement composite indexes early (TASK-003), run EXPLAIN analysis (TASK-039), test with large datasets, implement cursor-based pagination if needed |
-| **R-002** | JWT token security vulnerability (XSS/CSRF) | Critical | Low | User accounts compromised, data breach | Use httpOnly cookies instead of localStorage (TASK-008), implement CSRF protection, security audit before launch, rate limiting on auth endpoints |
-| **R-003** | Frontend bundle size exceeds 200KB target | Medium | Medium | Slow initial page load, poor mobile UX | Code splitting (TASK-039), lazy load components, tree-shake dependencies, monitor bundle size in CI, use Lighthouse budget |
-| **R-004** | React Query cache invalidation bugs cause stale data | Medium | Medium | Users see outdated task data after updates | Thorough testing of optimistic updates (TASK-017), implement rollback on error, use React Query DevTools for debugging, clear cache on logout |
-| **R-005** | PostgreSQL full-text search too slow on large datasets | Medium | Low | Search queries >300ms, poor UX | Create GIN indexes (TASK-031), benchmark with 100K+ tasks, consider ElasticSearch for post-MVP, cache popular searches in Redis |
-| **R-006** | Cross-browser compatibility issues (Safari, Firefox) | Low | Medium | Features broken on specific browsers | Test on all target browsers (TASK-036), use polyfills, avoid browser-specific APIs, include browser testing in CI |
-| **R-007** | Docker Compose resource consumption on dev machines | Low | Medium | Slow local development, high CPU/RAM usage | Optimize Docker images (use alpine base), document minimum system requirements, provide non-Docker setup option |
-| **R-008** | Race conditions in optimistic updates | Medium | Low | UI shows incorrect state after concurrent edits | Use React Query's `onMutate`/`onError` callbacks correctly, implement version checking on backend (optional), test concurrent operations |
-| **R-009** | Accessibility violations fail WCAG AA compliance | High | Medium | Legal issues, excluded user groups | Automated Axe scans in CI (TASK-037), manual screen reader testing, accessibility audit before launch, allocate time for fixes |
-| **R-010** | Deployment pipeline failures block releases | Medium | Medium | Unable to ship updates, prolonged downtime | Test CI/CD pipeline early (TASK-006), implement rollback mechanism, maintain staging environment, document manual deployment process as backup |
-| **R-011** | Third-party service downtime (Redis, database host) | High | Low | Application unavailable, data inaccessible | Implement health checks (TASK-005), graceful degradation (work without Redis cache), multi-region backups, choose reliable providers |
-| **R-012** | Test suite becomes too slow (>5 minutes) | Low | High | Slow CI feedback, developer frustration | Parallelize tests, use test database optimization, mock external services, set time budgets per phase, profile slow tests |
+|---------|-----------------|----------|-------------|--------|---------------------|
+| **R1** | SQLite FTS5 performance degrades with 10,000+ sessions | High | Medium | Search becomes slow (>5s) | Early load testing, consider trigram tokenizer or external search engine (Elasticsearch) for >50K sessions |
+| **R2** | Browser memory limits exceeded with large datasets | High | Medium | UI crashes or becomes unresponsive | Implement virtual scrolling, lazy loading, profile memory usage early |
+| **R3** | Log parsing errors with malformed files | Medium | Medium | Indexing fails, some sessions missing | Robust error handling, skip corrupted files, log warnings |
+| **R4** | CORS issues with file:// protocol | Medium | High | Static deployment doesn't work | Document local HTTP server requirement, provide startup scripts |
+| **R5** | Topic suggestion algorithm produces poor results | Medium | Medium | Users don't find it useful | Start with simple keyword overlap, gather feedback, iterate in Phase 2+ |
+| **R6** | Incremental indexing misses updated files | Low | Low | Stale data in UI | Verify mtime comparison logic, add manual re-index button |
+| **R7** | Web Components browser compatibility | Low | Low | UI doesn't work on older browsers | Test on target browsers early, use polyfills if needed |
+| **R8** | Python version incompatibility | Low | Medium | Application doesn't run | Clearly document Python 3.8+ requirement, test on multiple versions |
 
 ### Process Risks
 
-| Risk ID | Risk Description | Severity | Probability | Impact | Mitigation Strategy |
-|---------|------------------|----------|-------------|--------|---------------------|
-| **R-013** | Scope creep extends timeline beyond 12 weeks | High | High | Missed launch date, budget overrun | Strict MVP scope enforcement, defer nice-to-have features (tags, search) to post-MVP, weekly scope review, stakeholder sign-off on changes |
-| **R-014** | Solo developer capacity constraint | Critical | High (solo) | Delayed tasks, burnout, quality issues | Focus on critical path tasks, parallelize after API contracts defined, use proven technologies, limit work hours to sustainable pace, skip optional tasks if needed |
-| **R-015** | Underestimated task complexity | Medium | Medium | Tasks take 2x estimated time | Build 20% buffer into timeline, reassess after Phase 1, use time-boxing (stop at estimate, defer to next phase), track actual vs. estimated time |
-| **R-016** | Dependency blocking (backend delays frontend) | Medium | Medium | Idle developer time, timeline slip | Define API contracts early (TASK-007), use mock APIs for frontend development, enable parallel work streams after TASK-010 |
-| **R-017** | Inadequate testing coverage (<80%) | High | Medium | Bugs in production, difficult maintenance | Allocate dedicated testing phase (TASK-040), enforce coverage in CI, write tests alongside features, code review for test quality |
-| **R-018** | Knowledge gaps in new technologies | Medium | Medium (solo) | Learning curve delays implementation | Proof-of-concept for unfamiliar tech (React Query, Prisma), allocate extra time for first use, have fallback technologies, leverage documentation and tutorials |
+| Risk ID | Risk Description | Severity | Probability | Mitigation Strategy |
+|---------|-----------------|----------|-------------|---------------------|
+| **P1** | Scope creep (adding features not in MVP) | Medium | High | Strict adherence to phase plan, defer enhancements to Phase 2+ |
+| **P2** | Underestimated task complexity | Medium | Medium | Add 20% buffer to estimates, track actual time spent |
+| **P3** | Testing bottleneck (E2E tests slow development) | Low | Medium | Run E2E tests nightly, prioritize unit/integration tests for fast feedback |
+| **P4** | Documentation falls behind implementation | Low | High | Update docs incrementally, allocate dedicated time for documentation |
 
 ---
 
 ## Testing Strategy
 
-### Unit Test Coverage (Target: 80%)
+### Unit Test Coverage Targets
 
-**Backend Unit Tests** (144 tests estimated):
-- **Services** (72 tests):
-  - `auth.service.ts`: 18 tests (register, login, password hashing, token generation, account lockout)
-  - `task.service.ts`: 30 tests (CRUD operations, pagination, filtering, sorting, ownership validation)
-  - `list.service.ts`: 12 tests (CRUD, task reassignment on delete, uniqueness constraints)
-  - `tag.service.ts`: 12 tests (tag creation, autocomplete, task linking, cleanup)
-- **Middleware** (24 tests):
-  - `auth.middleware.ts`: 12 tests (token validation, unauthorized cases, rate limiting)
-  - `validate.middleware.ts`: 12 tests (Zod validation, error formatting)
-- **Utilities** (12 tests):
-  - `jwt.ts`: 6 tests (token generation, verification, expiration)
-  - `password.ts`: 6 tests (hashing, verification, strength validation)
-- **Controllers** (36 tests):
-  - Controller integration tests with mocked services
+| Component | Target Coverage | Test Focus |
+|-----------|----------------|------------|
+| **Log Parser** | 80%+ | Valid files, corrupted files, edge cases (empty, malformed JSON) |
+| **Search Engine** | 80%+ | FTS5 queries, filter logic, inverted index, ranking |
+| **Database Module** | 70%+ | CRUD operations, transactions, schema migrations |
+| **Export Functions** | 70%+ | CSV/Markdown/JSON formatting, special characters |
 
-**Frontend Unit Tests** (96 tests estimated):
-- **Components** (60 tests):
-  - `LoginForm.tsx`: 8 tests (validation, submission, error display)
-  - `TaskList.tsx`: 12 tests (rendering, empty state, loading, pagination)
-  - `TaskCreateModal.tsx`: 10 tests (form submission, validation, optimistic update)
-  - `TaskDetailModal.tsx`: 12 tests (view/edit mode, delete, quick actions)
-  - `ListSidebar.tsx`: 8 tests (CRUD operations, task counts)
-  - `SearchBar.tsx`: 10 tests (debounce, results, keyboard navigation)
-- **Hooks** (24 tests):
-  - `useTasks.ts`: 12 tests (query, mutations, cache invalidation)
-  - `useAuth.ts`: 12 tests (login, logout, token refresh)
-- **Utilities** (12 tests):
-  - `dateHelpers.ts`, `validators.ts`, error handling
+### Integration Test Scenarios
 
-**Coverage Enforcement**:
-- Vitest configured with `coverage.threshold`:
-  - `lines: 80%`, `functions: 80%`, `branches: 75%`, `statements: 80%`
-- CI fails if coverage drops below threshold
-- Coverage report posted to PR as comment
+| Scenario | Description | Expected Outcome |
+|----------|-------------|------------------|
+| **API Session List** | GET /api/sessions with pagination | Returns correct page of results |
+| **API Session Detail** | GET /api/sessions/{id} | Returns full session metadata |
+| **API Keyword Search** | GET /api/search?q=MCP | Returns ranked search results with snippets |
+| **API Filter Combination** | GET /api/sessions?tools=WebSearch&agents=researcher | Returns sessions matching both filters |
+| **API Topic Management** | POST /api/topics, tag sessions, GET /api/topics/{id}/sessions | Topic CRUD operations work correctly |
+| **Database Indexing** | Index 1000 sample log files | All sessions inserted, FTS index populated |
 
----
+### End-to-End Test Requirements
 
-### Integration Test Coverage
+| User Workflow | Test Steps | Success Criteria |
+|---------------|------------|------------------|
+| **Browse and View** | 1. Open app<br>2. Click session<br>3. View transcript | Session detail loads with full transcript |
+| **Search** | 1. Enter keyword "MCP"<br>2. View results<br>3. Click result | Search returns relevant sessions, detail view opens |
+| **Filter** | 1. Select tool filter "WebSearch"<br>2. View filtered list<br>3. Verify all sessions use WebSearch | Only filtered sessions shown |
+| **Create Topic** | 1. Click "New Topic"<br>2. Enter name<br>3. Tag sessions<br>4. View topic detail | Topic created, sessions tagged, topic list updates |
+| **Export** | 1. Filter sessions<br>2. Click export CSV<br>3. Open file | CSV downloads with correct data |
 
-**Backend Integration Tests** (24 scenarios):
-- **Authentication Flow** (6 scenarios):
-  - Register → Login → Access protected route
-  - Duplicate email registration fails
-  - Invalid credentials fail login
-  - Token expiration triggers 401
-  - Rate limiting blocks excessive attempts
-  - Logout invalidates token (if implemented)
-- **Task CRUD Flow** (12 scenarios):
-  - Create task → Retrieve → Update → Delete
-  - Pagination returns correct pages
-  - Filtering by status, priority, list, tags
-  - Sorting by various fields
-  - Search returns matching tasks
-  - Cross-user access blocked (403)
-- **List & Tag Management** (6 scenarios):
-  - Create list → Assign task → Delete list (move tasks)
-  - Add tags to task → Autocomplete → Remove tags
-  - List deletion with "delete tasks" option
-  - Tag cleanup after last usage removed
+### Performance Benchmarks
 
-**Frontend Integration Tests** (React Testing Library):
-- Component integration with React Query
-- Form submission with API mocking (MSW)
-- Error state rendering
-- Loading state transitions
+| Benchmark | Target | Measurement Method |
+|-----------|--------|-------------------|
+| **Initial Load** | < 3s | Chrome DevTools Performance tab, measure to First Contentful Paint |
+| **Keyword Search** | < 2s | Measure API response time for search endpoint with 1000 sessions |
+| **Filter Application** | < 500ms | Measure API response time for filtered session list |
+| **Session Detail Load** | < 1s | Measure time from click to full transcript render |
+| **Indexing Performance** | < 30s for 1000 sessions | Log indexing duration, verify with test dataset |
+| **Memory Usage** | < 500MB | Chrome DevTools Memory profiler with 1000 sessions loaded |
 
 ---
 
-### End-to-End Test Coverage
+## Dependency Matrix
 
-**E2E Test Scenarios** (18 critical paths):
-
-**Authentication** (3 scenarios):
-1. User registers → auto-login → dashboard redirect
-2. User logs in → dashboard → logout → redirect to login
-3. Unauthenticated user accessing protected route → redirect to login
-
-**Task Management** (8 scenarios):
-4. Create task (quick-add) → appears in list
-5. Create task (full form) → view detail → verify all fields
-6. Edit task → save → changes reflected
-7. Change task status → updates immediately
-8. Delete task → confirmation → removed from list
-9. Filter by status → only matching tasks shown
-10. Search task → results displayed → click result → detail opens
-11. Pagination → navigate pages → tasks loaded correctly
-
-**Organization** (5 scenarios):
-12. Create list → assign task → filter by list
-13. Add tags to task → tag autocomplete works → tags displayed
-14. Filter by priority → overdue indicator shown
-15. Combine filters (status + priority + list) → correct results
-16. Sort by due date → tasks in correct order
-
-**UI/UX** (2 scenarios):
-17. Mobile responsive → hamburger menu → navigate → forms usable
-18. Keyboard navigation → shortcuts work → accessible
-
-**Test Execution**:
-- Playwright for E2E tests
-- Run against Docker Compose environment
-- Headless mode in CI, headed mode locally
-- Parallel execution (4 workers)
-- Target: <5 minutes total execution time
-
----
-
-### Performance Test Requirements
-
-**Frontend Performance** (Lighthouse CI):
-- **Metrics**: Performance score ≥90, FCP <1.5s, TTI <3s, LCP <2.5s
-- **Testing**: Automated in CI on every PR
-- **Budget**: Initial bundle <200KB gzipped, total page weight <1MB
-
-**Backend Load Testing** (k6):
-```javascript
-// Load test scenario
-export const options = {
-  stages: [
-    { duration: '1m', target: 50 },    // Ramp up to 50 users
-    { duration: '3m', target: 100 },   // Stay at 100 users
-    { duration: '1m', target: 200 },   // Spike to 200 users
-    { duration: '1m', target: 0 },     // Ramp down
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<200'],  // 95% of requests <200ms
-    http_req_failed: ['rate<0.01'],    // <1% error rate
-  },
-};
-
-// Test scenarios
-- GET /api/v1/tasks (with filters, pagination)
-- POST /api/v1/tasks
-- PUT /api/v1/tasks/:id
-- GET /api/v1/tasks/search?q=keyword
-```
-
-**Database Performance**:
-- Query analysis with `EXPLAIN ANALYZE`
-- Benchmark with 100K tasks, 1K users
-- Verify index usage
-- Target: <100ms for indexed queries
+| Task ID | Task Name | Depends On | Blocks | Can Parallelize With |
+|---------|-----------|------------|--------|---------------------|
+| T1.1 | Project Setup | None | All | None |
+| T1.2 | Database Schema | T1.1 | T1.5, T3.4 | T1.3, T1.4, T1.9 |
+| T1.3 | Parse transcript.txt | T1.1 | T1.5 | T1.2, T1.4, T1.9 |
+| T1.4 | Parse tool_calls.jsonl | T1.1 | T1.5 | T1.2, T1.3, T1.9 |
+| T1.5 | Log Discovery & Indexing | T1.2, T1.3, T1.4 | T1.6, T1.7, T1.8 | None |
+| T1.6 | Inverted Index | T1.5 | T1.8, T2.1 | T1.7, T1.9 |
+| T1.7 | FTS5 Search | T1.5 | T1.8, T2.1 | T1.6, T1.9 |
+| T1.8 | FastAPI Server | T1.2, T1.5, T1.6, T1.7 | T1.11, T1.13, T2.1 | T1.9, T1.10 |
+| T1.9 | HTML Structure | T1.1 | T1.10, T1.11, T1.12 | T1.2-T1.8 |
+| T1.10 | CSS Styling | T1.9 | T1.11, T1.12, T2.2 | T1.8 |
+| T1.11 | Session List Component | T1.8, T1.9, T1.10 | T2.6 | T1.12, T1.13 |
+| T1.12 | Session Detail Component | T1.8, T1.9, T1.10 | T2.6 | T1.11, T1.13 |
+| T1.13 | API Client | T1.8 | T1.11, T1.12, T2.6 | T1.9, T1.10 |
+| T1.14 | Unit Tests (Parser) | T1.3, T1.4 | None | T1.15 |
+| T1.15 | Integration Tests (API) | T1.8 | None | T1.14 |
+| T2.1 | Filter Query Logic | T1.6, T1.8 | T2.2, T2.6 | T2.3 |
+| T2.2 | Filter Panel Component | T2.1, T1.9, T1.10 | T2.6 | T2.3, T2.4 |
+| T2.3 | Search Bar Component | T1.8, T1.9, T1.10 | T2.6 | T2.1, T2.2, T2.4 |
+| T2.4 | State Management | T1.9 | T2.6 | T2.1, T2.2, T2.3 |
+| T2.5 | Router | T1.9 | T2.6 | T2.1-T2.4 |
+| T2.6 | Frontend Integration | T2.1-T2.5 | T3.8 | None |
+| T3.1 | Analytics Aggregation | T1.2, T1.5 | T3.2, T3.3 | T3.4 |
+| T3.2 | Analytics API | T3.1, T1.8 | T3.3 | T3.4 |
+| T3.3 | Analytics Dashboard | T3.2, T1.9, T1.10 | T3.8 | T3.6 |
+| T3.4 | Topic API | T1.2, T1.8 | T3.5, T3.6 | T3.1, T3.2 |
+| T3.5 | Topic Suggestion | T3.4 | T3.6 | T3.7 |
+| T3.6 | Topic Manager Component | T3.4, T3.5, T1.9, T1.10 | T3.8 | T3.3, T3.7 |
+| T3.7 | Export Functionality | T1.8, T3.4 | None | T3.1-T3.6 |
+| T3.8 | E2E Tests | T2.6, T3.6 | None | None |
+| T4.1 | Virtual Scrolling | T1.11 | None | T4.2-T4.9 |
+| T4.2 | Optimize Indexing | T1.5 | None | T4.1, T4.3-T4.9 |
+| T4.3 | Caching Layer | T1.8, T3.2 | None | T4.1, T4.2, T4.4-T4.9 |
+| T4.4 | Error Handling | T1.8, T2.6 | None | T4.1-T4.3, T4.5-T4.9 |
+| T4.5 | Performance Profiling | All previous | None | T4.6-T4.8 |
+| T4.6 | API Documentation | T1.8 | None | T4.1-T4.5, T4.7-T4.9 |
+| T4.7 | Security Hardening | T1.8 | None | T4.1-T4.6, T4.8, T4.9 |
+| T4.8 | Accessibility | T1.9, T1.10 | None | T4.1-T4.7, T4.9 |
+| T4.9 | Deployment Script | T1.8 | None | T4.1-T4.8 |
+| T4.10 | Final Testing | All previous | None | None |
 
 ---
 
-## Success Criteria Summary
+## Critical Path Timeline
 
-### Development Metrics
-- [ ] All 42 tasks completed
-- [ ] 280-360 hours actual effort (within 20% of estimate)
-- [ ] Code coverage ≥80% (backend + frontend)
-- [ ] Zero critical bugs in production (first 2 weeks)
-- [ ] CI/CD pipeline success rate ≥95%
-
-### Quality Metrics
-- [ ] Lighthouse performance score ≥90
-- [ ] Axe accessibility violations = 0
-- [ ] API response time p95 <200ms
-- [ ] Frontend bundle size <200KB gzipped
-- [ ] All NFRs from requirements.md met
-
-### User Experience Metrics
-- [ ] New user onboarding <2 minutes (registration → first task created)
-- [ ] SUS (System Usability Scale) score ≥70
-- [ ] Beta tester feedback ≥4.0/5.0
-- [ ] Mobile usability score ≥90 (Lighthouse)
-
-### Deployment Metrics
-- [ ] Production deployment time <30 minutes (from commit to live)
-- [ ] Zero-downtime deployment capability
-- [ ] Automated backups verified (restore tested)
-- [ ] Uptime ≥99.5% (measured over first month)
-
----
-
-## Parallelization Opportunities
-
-### Stream 1: Backend Development (Critical Path)
-- TASK-001 → TASK-002 → TASK-003 → TASK-007 → TASK-008 → TASK-009 → TASK-010 → TASK-015 → TASK-016 → TASK-023 → TASK-024 → TASK-031
-
-### Stream 2: Frontend Development (After API Contracts)
-- TASK-001 → TASK-004 → TASK-011 (can start after TASK-010 defines API) → TASK-012 → TASK-013 → TASK-017 (after TASK-016) → TASK-018 → TASK-019 → TASK-020 → TASK-021 → TASK-025 (after TASK-023) → TASK-026 (after TASK-024) → TASK-027 → TASK-028 → TASK-029 → TASK-032 (after TASK-031)
-
-### Stream 3: Infrastructure & Testing (Parallel)
-- TASK-005 (parallel with TASK-003, TASK-004)
-- TASK-006 (parallel with Phase 2)
-- TASK-014 (after TASK-013)
-- TASK-022 (after TASK-021)
-- TASK-030 (after TASK-029)
-- TASK-035 (after TASK-032)
-- TASK-036 → TASK-037 → TASK-038 → TASK-039 → TASK-040 → TASK-041 → TASK-042
-
-**Optimal Team Setup**:
-- **1 developer**: Sequential execution, 8-12 weeks
-- **2 developers**: Backend + Frontend parallel, 4-6 weeks (after Phase 1 complete)
-- **3 developers**: Backend + Frontend + Testing/Infrastructure parallel, 3-4 weeks
-
----
-
-## Implementation Notes
-
-### Daily Workflow Recommendations
-
-**Morning Routine** (15 min):
-- Review yesterday's completed tasks
-- Check CI/CD pipeline status
-- Plan today's tasks (max 2-3 per day)
-- Identify blockers
-
-**Development Block** (2-3 hours):
-- Focus on single task
-- Write tests first (TDD for critical logic)
-- Commit frequently (atomic commits)
-- Update task status in tracking system
-
-**Code Review** (30-60 min):
-- Self-review before pushing
-- Address linting/formatting issues
-- Run tests locally
-- Create PR with clear description
-
-**End of Day** (15 min):
-- Update task status
-- Document blockers or learnings
-- Plan next day's tasks
-
-### Git Commit Standards
-
-**Commit Message Format**:
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-**Types**: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`
-**Scope**: `auth`, `tasks`, `lists`, `tags`, `ui`, `api`, `db`, `ci`
-
-**Examples**:
-```
-feat(auth): implement JWT authentication service (TASK-008)
-
-- Add bcrypt password hashing
-- Implement token generation
-- Add account lockout logic
-
-Closes #8
-```
+The critical path represents the longest sequence of dependent tasks that determine the minimum project duration:
 
 ```
-fix(tasks): correct pagination offset calculation (TASK-015)
+T1.1 (2h) → T1.2 (3h) → T1.3 (4h) → T1.5 (3h) → T1.6 (2h) → T1.8 (4h) → T2.1 (3h) → T2.6 (3h) → T3.1 (3h) → T3.2 (2h) → T3.3 (5h) → T4.10 (4h)
 
-- Fix off-by-one error in pagination
-- Add unit tests for edge cases
-
-Related to TASK-015
+Total Critical Path: 38 hours (approximately 5 person-days)
 ```
 
-### Code Review Checklist
+However, with parallelization across backend, frontend, and testing streams, the actual calendar time can be reduced significantly:
 
-- [ ] Tests included and passing (unit + integration)
-- [ ] Code follows project style guide (ESLint + Prettier)
-- [ ] No console.log or debug code
-- [ ] Error handling implemented
-- [ ] TypeScript types complete (no `any` without justification)
-- [ ] Performance impact considered (no obvious bottlenecks)
-- [ ] Accessibility requirements met (if UI changes)
-- [ ] Documentation updated (if public API changes)
-- [ ] No security vulnerabilities introduced
+**Optimized Timeline with 3 Parallel Streams**:
+- Week 1 (Phase 1 MVP): Backend stream (T1.1-T1.8), Frontend stream (T1.9-T1.13), Testing stream (T1.14-T1.15)
+- Week 2 (Phase 1 completion): Frontend integration (T1.16, T2.6)
+- Week 3 (Phase 2): Backend (T2.1, T2.7), Frontend (T2.2-T2.5)
+- Week 4 (Phase 3): Backend (T3.1, T3.2, T3.4, T3.5), Frontend (T3.3, T3.6, T3.7), Testing (T3.8)
+- Week 5 (Phase 4): Optimization and polish (T4.1-T4.10 in parallel)
 
 ---
 
-## Appendix: Task Estimation Methodology
+## Success Criteria
 
-### Complexity Levels
+### Phase Completion Criteria
 
-**Small (S)**: 2-4 hours
-- Single component or function
-- Clear requirements, minimal unknowns
-- Minimal dependencies
-- Examples: TASK-007 (shared types), TASK-027 (badges)
+**Phase 1 MVP Complete When**:
+- [ ] User can browse all sessions in web UI
+- [ ] User can view full session transcript and tool calls
+- [ ] User can search by keyword in < 2 seconds
+- [ ] Application handles 1,000 sessions gracefully
+- [ ] All unit and integration tests pass
 
-**Medium (M)**: 4-8 hours
-- Multiple related components or functions
-- Some complexity or unknowns
-- Moderate dependencies
-- Examples: TASK-009 (auth middleware), TASK-017 (React Query hooks)
+**Phase 2 Filtering Complete When**:
+- [ ] User can filter by tool, agent, skill
+- [ ] Filters apply in < 500ms
+- [ ] User can combine multiple filters
+- [ ] Filter state persists in localStorage
 
-**Large (L)**: 8-12 hours
-- Complex feature with multiple parts
-- Significant unknowns or new technology
-- Many dependencies or integrations
-- Examples: TASK-008 (auth service), TASK-018 (task list), TASK-042 (deployment)
+**Phase 3 Analytics Complete When**:
+- [ ] Analytics dashboard displays key statistics
+- [ ] User can create and manage topics
+- [ ] Topic suggestions are relevant (>70% accuracy)
+- [ ] User can export sessions to CSV/Markdown/JSON
 
-### Estimation Factors
-
-**Time Multipliers**:
-- New technology: +50%
-- High uncertainty: +30%
-- Critical path (no parallelization): +20%
-- Testing overhead: +25% (built into estimates)
-
-**Assumptions**:
-- Developer has moderate experience with stack (React, Node.js, TypeScript)
-- Access to documentation and AI assistance
-- Minimal interruptions during development blocks
-- Code review turnaround <24 hours
+**Phase 4 Optimization Complete When**:
+- [ ] Application handles 10,000+ sessions gracefully
+- [ ] Memory usage < 500MB
+- [ ] Initial load < 3 seconds
+- [ ] All E2E tests pass
+- [ ] Documentation is complete
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2025-11-19
-**Author**: Implementation Planning Specialist (Claude)
-**Status**: Ready for Review
-**Related Documents**: requirements.md, architecture.md
+## Document Metadata
 
-**Next Steps**:
-1. Review and validate task breakdown with development team
-2. Assign complexity ratings to each task
-3. Create sprint plan (2-week sprints recommended)
-4. Set up task tracking in GitHub Projects or similar
-5. Begin Phase 1: Project Setup & Infrastructure
+**Version**: 1.0
+**Date**: 2025-11-19
+**Author**: spec-planner (Claude)
+**Status**: Implementation Ready
+
+**Total Estimated Effort**: 22-25 person-days (176-200 hours)
+**Recommended Team Size**: 1-2 developers
+**Recommended Timeline**: 5 weeks (with 3 parallel streams)
 
 ---
 
-**END OF IMPLEMENTATION TASKS DOCUMENT**
+**End of Implementation Tasks Document**
 
-*Total Tasks: 42*
-*Total Estimated Effort: 280-360 hours*
-*Target Timeline: 8-12 weeks (solo developer)*
+*This document serves as the detailed task breakdown for implementing the Session Log Viewer. All tasks are atomic (1-8 hours), have clear acceptance criteria, and are organized to enable parallel development streams for maximum efficiency.*
