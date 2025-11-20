@@ -102,53 +102,239 @@ Determine project directory name for organizing deliverables:
 
 **Part B: Check for Existing Project**
 
-Check if `docs/projects/{project-slug}/` already exists:
+**Step B1: Check if project exists**
 
-**If NO** (new project):
-- Create project directory structure:
-  - `docs/projects/{project-slug}/planning/`
-  - `docs/projects/{project-slug}/adrs/`
-- Proceed to Step 2 with fresh planning mode
+Use Bash tool to check if project directory exists:
+```bash
+if [ -d "docs/projects/{project-slug}" ]; then
+  echo "existing"
+else
+  echo "new"
+fi
+```
 
-**If YES** (existing project):
+**If NEW PROJECT** (no directory exists):
+```bash
+# Create fresh directory structure
+mkdir -p "docs/projects/{project-slug}/planning"
+mkdir -p "docs/projects/{project-slug}/adrs"
+echo "Fresh directories created"
+```
+
+Then use workflow_state.sh to save state:
+```bash
+.claude/utils/workflow_state.sh set "{project-slug}" "fresh" ""
+```
+
+Proceed to Step 2 with fresh planning mode.
+
+---
+
+**If EXISTING PROJECT** (directory exists):
+
+**Step B2: Ask user for choice**
+
 Use AskUserQuestion tool to ask:
 
+```javascript
+{
+  "questions": [{
+    "question": "Project '{project-slug}' already has planning specifications. How would you like to proceed?",
+    "header": "Refine Specs",
+    "multiSelect": false,
+    "options": [
+      {
+        "label": "Refine existing specs",
+        "description": "Agents will read current files and improve them iteratively"
+      },
+      {
+        "label": "Archive + fresh start",
+        "description": "Move existing specs to .archive/{timestamp}/ and create new specs from scratch"
+      },
+      {
+        "label": "Create new version",
+        "description": "Create {project-slug}-v2/ directory for new planning iteration"
+      },
+      {
+        "label": "Cancel",
+        "description": "Stop the workflow without making changes"
+      }
+    ]
+  }]
+}
 ```
-Question: "Project '{project-slug}' already has planning specifications. How would you like to proceed?"
 
-Options:
-1. "Refine existing specs" - Agents will read current files and improve them iteratively
-2. "Archive old + fresh start" - Move existing specs to .archive/{timestamp}/ and create new specs from scratch
-3. "Create new version" - Create {project-slug}-v2/ directory for new planning iteration
-4. "Cancel" - Stop the workflow
+**Step B3: Handle user choice**
+
+Store user's answer from AskUserQuestion response in variable `USER_CHOICE`.
+
+**If USER_CHOICE = "Refine existing specs"**:
+
+1. Save state as refinement mode:
+```bash
+# Capture user's additional requirements from conversation context
+USER_INPUT="[Extract new requirements from user's latest messages]"
+
+# Save to state file
+.claude/utils/workflow_state.sh set "{project-slug}" "refinement" "$USER_INPUT"
 ```
 
-**Based on User Choice**:
+2. Set WORKFLOW_MODE = "refinement"
+3. Proceed to Step 2 with refinement mode prompts
 
-- **Choice 1 (Refine)**: Set workflow mode to `refinement`. Update all agent prompts to:
-  - Read existing files first
-  - Preserve good sections
-  - Enhance weak areas
-  - Add missing sections
-  - Agent prompts become: "Read existing {file} and refine based on new requirements..."
+---
 
-- **Choice 2 (Archive + Fresh)**:
-  - Create `.archive/` directory if it doesn't exist
-  - Move `docs/projects/{project-slug}/` → `docs/projects/{project-slug}/.archive/{timestamp}/`
-  - Create fresh directory structure
-  - Proceed with normal fresh planning mode
+**If USER_CHOICE = "Archive + fresh start"**:
 
-- **Choice 3 (New Version)**:
-  - Determine next version number (check for existing v2, v3, etc.)
-  - Update project-slug to `{project-slug}-v2` (or v3, v4, etc.)
-  - Create new versioned directory
-  - Proceed with normal fresh planning mode
+1. Run archive utility:
+```bash
+# Archive existing specs with timestamp
+.claude/utils/archive_project.sh "{project-slug}"
 
-- **Choice 4 (Cancel)**:
-  - Exit workflow gracefully
-  - Inform user no changes were made
+# This script:
+# - Creates .archive/{timestamp}/ directory
+# - Copies planning/ and adrs/ to archive
+# - Verifies integrity
+# - Deletes originals
+# - Creates fresh planning/ and adrs/ directories
+# - Returns exit code 0 on success, 1 on failure
+```
 
-**Output**: Project slug + workflow mode (fresh | refinement) for use throughout workflow
+2. Check exit code and handle errors:
+```bash
+if [ $? -eq 0 ]; then
+  echo "Archive successful, proceeding with fresh planning"
+else
+  echo "Archive failed, aborting workflow"
+  exit 1
+fi
+```
+
+3. Save state as fresh mode:
+```bash
+.claude/utils/workflow_state.sh set "{project-slug}" "fresh" ""
+```
+
+4. Set WORKFLOW_MODE = "fresh"
+5. Proceed to Step 2 with fresh planning mode prompts
+
+---
+
+**If USER_CHOICE = "Create new version"**:
+
+1. Detect next available version:
+```bash
+# Run version detection utility
+NEW_SLUG=$(.claude/utils/detect_next_version.sh "{project-slug}")
+
+# This returns: "{project-slug}-v2" or "{project-slug}-v3" etc.
+# Exit code 0 on success, 1 if version limit reached (v99)
+```
+
+2. Handle version detection result:
+```bash
+if [ $? -eq 0 ]; then
+  echo "Next version: $NEW_SLUG"
+  PROJECT_SLUG="$NEW_SLUG"
+else
+  echo "ERROR: Version limit reached (v2-v99 all exist)"
+  echo "Consider using 'Archive + fresh start' instead"
+  exit 1
+fi
+```
+
+3. Create new versioned directory:
+```bash
+mkdir -p "docs/projects/$PROJECT_SLUG/planning"
+mkdir -p "docs/projects/$PROJECT_SLUG/adrs"
+```
+
+4. Save state with new slug:
+```bash
+.claude/utils/workflow_state.sh set "$PROJECT_SLUG" "fresh" ""
+```
+
+5. Update PROJECT_SLUG variable to new version slug
+6. Set WORKFLOW_MODE = "fresh"
+7. Proceed to Step 2 with fresh planning mode prompts
+
+---
+
+**If USER_CHOICE = "Cancel"**:
+
+1. Clear any partial state:
+```bash
+.claude/utils/workflow_state.sh clear
+```
+
+2. Inform user:
+```
+Workflow cancelled. No changes made to existing project specs.
+```
+
+3. Exit workflow gracefully (return to user)
+
+---
+
+**Output**:
+- `PROJECT_SLUG` (final slug, may be versioned)
+- `WORKFLOW_MODE` ("fresh" or "refinement")
+- `USER_INPUT` (additional requirements if refinement mode, empty string otherwise)
+
+---
+
+**Step 1.6: Placeholder Substitution**
+
+Before spawning agents, substitute placeholders in prompt templates with actual values:
+
+**Required Substitutions**:
+- `{project-slug}` → Actual project slug (e.g., "task-tracker-pwa" or "task-tracker-pwa-v2")
+- `[PROJECT_NAME]` → User-friendly project name extracted from original request (e.g., "Task Tracker PWA")
+- `[ADDITIONAL_REQUIREMENTS_FROM_USER]` → (Refinement mode only) User's new requirements from conversation
+- `[CHANGES_FROM_REQUIREMENTS]` → (Refinement mode only) Summary of requirement changes for architect
+
+**How to Extract Values**:
+
+1. **PROJECT_NAME**: Parse from original user request
+   - Example: "Build a task tracker PWA" → PROJECT_NAME = "Task Tracker PWA"
+   - Example: "Plan an e-commerce catalog" → PROJECT_NAME = "E-Commerce Catalog"
+
+2. **USER_INPUT for Refinement** (saved in state file):
+```bash
+# Retrieve from state file
+USER_INPUT=$(.claude/utils/workflow_state.sh get "user_input")
+```
+
+If empty (user just said "refine specs"), use generic guidance:
+```
+USER_INPUT="Review all sections for completeness, update metrics to be measurable, enhance clarity"
+```
+
+3. **Perform substitution** before spawning each agent:
+```python
+# Pseudocode for substitution
+prompt_template = "Analyze requirements for [PROJECT_NAME]..."
+actual_prompt = prompt_template
+actual_prompt = actual_prompt.replace("{project-slug}", PROJECT_SLUG)
+actual_prompt = actual_prompt.replace("[PROJECT_NAME]", PROJECT_NAME)
+actual_prompt = actual_prompt.replace("[ADDITIONAL_REQUIREMENTS_FROM_USER]", USER_INPUT)
+```
+
+**Example Substitution**:
+
+Before:
+```
+prompt: "Refine requirements for [PROJECT_NAME].
+IMPORTANT: Read existing file at docs/projects/{project-slug}/planning/requirements.md first.
+4. Enhance based on new user input: [ADDITIONAL_REQUIREMENTS_FROM_USER]"
+```
+
+After (for task-tracker-pwa, user wants "add offline support"):
+```
+prompt: "Refine requirements for Task Tracker PWA.
+IMPORTANT: Read existing file at docs/projects/task-tracker-pwa/planning/requirements.md first.
+4. Enhance based on new user input: Add offline support with service workers and local storage"
+```
 
 ---
 
@@ -156,11 +342,13 @@ Options:
 
 Use Task tool to spawn requirements analysis agent to perform **Phase 1 Activity 1**:
 
+**IMPORTANT**: Apply placeholder substitution from Step 1.6 before spawning.
+
 **For Fresh Planning Mode**:
 ```
 subagent_type: "spec-analyst"
-description: "Analyze requirements for [PROJECT_NAME]"
-prompt: "Analyze requirements for [PROJECT_NAME]. Generate comprehensive requirements.md with:
+description: "Analyze requirements for {PROJECT_NAME}"
+prompt: "Analyze requirements for {PROJECT_NAME}. Generate comprehensive requirements.md with:
 - Executive Summary (project goals and scope)
 - Functional Requirements (prioritized with IDs: FR1, FR2, etc.)
 - Non-Functional Requirements (performance, security, scalability with metrics)
@@ -175,8 +363,8 @@ Save to: docs/projects/{project-slug}/planning/requirements.md"
 **For Refinement Mode**:
 ```
 subagent_type: "spec-analyst"
-description: "Refine requirements for [PROJECT_NAME]"
-prompt: "Refine requirements for [PROJECT_NAME].
+description: "Refine requirements for {PROJECT_NAME}"
+prompt: "Refine requirements for {PROJECT_NAME}.
 
 IMPORTANT: Read existing file at docs/projects/{project-slug}/planning/requirements.md first.
 
@@ -184,7 +372,7 @@ Your task:
 1. Analyze existing requirements document
 2. Identify gaps, weak sections, or outdated content
 3. Preserve well-written sections (don't rewrite what's already good)
-4. Enhance based on new user input: [ADDITIONAL_REQUIREMENTS_FROM_USER]
+4. Enhance based on new user input: {USER_INPUT}
 5. Add missing sections or details
 6. Update metrics to be more measurable
 7. Ensure acceptance criteria are concrete and testable
@@ -193,6 +381,8 @@ Maintain document structure but improve quality and completeness.
 
 Save updated version to: docs/projects/{project-slug}/planning/requirements.md"
 ```
+
+**Note**: Replace `{USER_INPUT}` with actual value from state file or generic guidance.
 
 Wait for completion → Read output: docs/projects/{project-slug}/planning/requirements.md
 
@@ -207,8 +397,8 @@ Use Task tool to spawn architecture design agent to perform **Phase 1 Activity 2
 **For Fresh Planning Mode**:
 ```
 subagent_type: "spec-architect"
-description: "Design system architecture for [PROJECT_NAME]"
-prompt: "Design system architecture for [PROJECT_NAME] based on requirements at docs/projects/{project-slug}/planning/requirements.md.
+description: "Design system architecture for {PROJECT_NAME}"
+prompt: "Design system architecture for {PROJECT_NAME} based on requirements at docs/projects/{project-slug}/planning/requirements.md.
 
 Generate:
 1. architecture.md with:
@@ -231,8 +421,8 @@ Save to: docs/projects/{project-slug}/planning/architecture.md, docs/projects/{p
 **For Refinement Mode**:
 ```
 subagent_type: "spec-architect"
-description: "Refine system architecture for [PROJECT_NAME]"
-prompt: "Refine system architecture for [PROJECT_NAME].
+description: "Refine system architecture for {PROJECT_NAME}"
+prompt: "Refine system architecture for {PROJECT_NAME}.
 
 IMPORTANT: Read existing files first:
 - docs/projects/{project-slug}/planning/architecture.md
@@ -243,7 +433,7 @@ Your task:
 1. Review existing architecture and ADRs
 2. Identify architectural gaps or areas needing improvement
 3. Check if technology stack decisions still make sense
-4. Enhance based on new/refined requirements: [CHANGES_FROM_REQUIREMENTS]
+4. Enhance based on new/refined requirements: {USER_INPUT}
 5. Add missing architectural components or considerations
 6. Update existing ADRs if decisions have changed (mark old as 'Superseded', create new ADRs)
 7. Preserve well-designed sections
@@ -252,6 +442,8 @@ Maintain consistency with existing ADRs but improve where needed.
 
 Save to: docs/projects/{project-slug}/planning/architecture.md, docs/projects/{project-slug}/adrs/*.md"
 ```
+
+**Note**: Use same `{USER_INPUT}` value from analyst step.
 
 Wait for completion → Read outputs: docs/projects/{project-slug}/planning/architecture.md, docs/projects/{project-slug}/adrs/*.md
 
@@ -266,8 +458,8 @@ Use Task tool to spawn implementation planning agent to perform **Phase 1 Activi
 **For Fresh Planning Mode**:
 ```
 subagent_type: "spec-planner"
-description: "Create implementation plan for [PROJECT_NAME]"
-prompt: "Create implementation plan for [PROJECT_NAME] based on:
+description: "Create implementation plan for {PROJECT_NAME}"
+prompt: "Create implementation plan for {PROJECT_NAME} based on:
 - Requirements: docs/projects/{project-slug}/planning/requirements.md
 - Architecture: docs/projects/{project-slug}/planning/architecture.md
 
@@ -291,8 +483,8 @@ Save to: docs/projects/{project-slug}/planning/tasks.md"
 **For Refinement Mode**:
 ```
 subagent_type: "spec-planner"
-description: "Refine implementation plan for [PROJECT_NAME]"
-prompt: "Refine implementation plan for [PROJECT_NAME].
+description: "Refine implementation plan for {PROJECT_NAME}"
+prompt: "Refine implementation plan for {PROJECT_NAME}.
 
 IMPORTANT: Read existing files first:
 - docs/projects/{project-slug}/planning/tasks.md
