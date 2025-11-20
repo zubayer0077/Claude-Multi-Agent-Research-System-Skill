@@ -16,6 +16,11 @@ files/reports/*.md
 !files/research_notes/README.md
 !files/reports/README.md
 
+# User-generated outputs (spec-workflow-orchestrator, examples, testing)
+docs/projects/
+docs/examples/
+docs/testing/
+
 # Privacy: Exclude private analysis and planning docs
 docs/analysis/
 docs/plans/
