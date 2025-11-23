@@ -2,9 +2,27 @@
 
 **Orchestrated multi-agent research with architectural enforcement, parallel execution, and comprehensive audit trails.**
 
-[![Version](https://img.shields.io/badge/version-2.1.2-blue.svg)](https://github.com/ahmedibrahim085/Claude-Multi-Agent-Research-System-Skill/releases)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/ahmedibrahim085/Claude-Multi-Agent-Research-System-Skill/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
+---
+
+## 🎉 New in v2.2.0: Planning Skill
+
+This release adds a **second skill** for comprehensive project planning:
+
+| Skill | Purpose | Agents |
+|-------|---------|--------|
+| **multi-agent-researcher** | Comprehensive topic investigation | researcher, report-writer |
+| **spec-workflow-orchestrator** | Planning from ideation to dev-ready specs | spec-analyst, spec-architect, spec-planner |
+
+**Quick Example**:
+```
+plan a task management PWA with offline support
+```
+
+See [Planning Workflow](#planning-workflow-new-in-v220) section and [CHANGELOG.md](CHANGELOG.md) for details.
 
 ---
 
@@ -25,6 +43,7 @@
   - [Phase 2: Parallel Research](#phase-2-parallel-research)
   - [Phase 3: Synthesis](#phase-3-synthesis)
   - [Phase 4: Delivery](#phase-4-delivery)
+- [Planning Workflow (New in v2.2.0)](#planning-workflow-new-in-v220)
 - [Configuration](#configuration)
   - [File Structure](#file-structure)
   - [File & Directory Reference](#file--directory-reference)
@@ -310,6 +329,78 @@ Orchestrator:
 
 ---
 
+## Planning Workflow (New in v2.2.0)
+
+The **spec-workflow-orchestrator** skill provides comprehensive project planning from ideation to development-ready specifications.
+
+### Trigger Keywords (90+)
+
+- "plan", "design", "architect", "build", "create", "implement"
+- "specs", "requirements", "features", "PRD", "ADR"
+- "what should we build", "how should we structure"
+
+### Workflow
+
+```
+User: "build a task tracker app"
+    ↓
+1. ANALYZE → spec-analyst gathers requirements
+    → User stories with acceptance criteria
+    → Functional/non-functional requirements
+    ↓
+2. ARCHITECT → spec-architect designs system
+    → Component architecture
+    → Technology recommendations
+    → Architecture Decision Records (ADRs)
+    ↓
+3. PLAN → spec-planner breaks down tasks
+    → Implementation tasks with dependencies
+    → Complexity estimates
+    → Suggested implementation order
+    ↓
+4. VALIDATE → Quality gate (85% threshold)
+```
+
+### Features
+
+- **Per-Project Structure**: `docs/projects/{project-slug}/`
+- **Interactive Decision**: Detects existing projects → New/Refine/Archive options
+- **Archive System**: Timestamped backups with integrity verification
+- **Quality Gates**: 85% threshold with up to 3 iterations
+- **State Management**: JSON-based workflow persistence
+
+### Outputs
+
+| File | Content |
+|------|---------|
+| `docs/projects/{slug}/requirements.md` | User stories, acceptance criteria |
+| `docs/projects/{slug}/architecture.md` | System design, components |
+| `docs/projects/{slug}/tasks.md` | Implementation tasks with dependencies |
+| `docs/adrs/*.md` | Architecture Decision Records |
+
+### Production Utilities
+
+```bash
+# Archive a project
+.claude/utils/archive_project.sh task-tracker-pwa
+
+# List archives
+.claude/utils/list_archives.sh task-tracker-pwa
+
+# Restore from archive
+.claude/utils/restore_archive.sh task-tracker-pwa 20251120-103602
+
+# Manage workflow state
+.claude/utils/workflow_state.sh set "task-tracker-pwa" "refinement" "Add offline"
+.claude/utils/workflow_state.sh get "mode"
+.claude/utils/workflow_state.sh show
+.claude/utils/workflow_state.sh clear
+```
+
+See [PRODUCTION_READY_SUMMARY.md](PRODUCTION_READY_SUMMARY.md) for detailed implementation status.
+
+---
+
 ## Configuration
 
 ### File Structure
@@ -317,18 +408,44 @@ Orchestrator:
 ```
 .
 ├── .claude/
-│   ├── settings.json          # Hooks configuration (committed)
-│   ├── settings.local.json    # User overrides (gitignored)
-│   ├── config.json            # Path & research configuration
-│   ├── hooks/                 # Python hook scripts
-│   └── skills/
-│       └── multi-agent-researcher/
-│           └── SKILL.md       # Skill definition
+│   ├── agents/                    # Agent definitions
+│   │   ├── researcher.md          # Research skill
+│   │   ├── report-writer.md       # Research skill
+│   │   ├── spec-analyst.md        # Planning skill (v2.2.0)
+│   │   ├── spec-architect.md      # Planning skill (v2.2.0)
+│   │   └── spec-planner.md        # Planning skill (v2.2.0)
+│   ├── commands/                  # Slash commands (v2.2.0)
+│   │   ├── plan-feature.md
+│   │   ├── project-status.md
+│   │   ├── research-topic.md
+│   │   └── verify-structure.md
+│   ├── hooks/                     # Python hook scripts
+│   │   ├── user-prompt-submit.py  # Universal skill activation (v2.2.0)
+│   │   ├── session-start.py
+│   │   └── post-tool-use-track-research.py
+│   ├── skills/
+│   │   ├── multi-agent-researcher/
+│   │   │   └── SKILL.md
+│   │   ├── spec-workflow-orchestrator/  # (v2.2.0)
+│   │   │   └── SKILL.md
+│   │   └── skill-rules.json       # Trigger configuration
+│   ├── utils/                     # Production utilities (v2.2.0)
+│   │   ├── archive_project.sh
+│   │   ├── restore_archive.sh
+│   │   ├── list_archives.sh
+│   │   ├── workflow_state.sh
+│   │   └── detect_next_version.sh
+│   ├── settings.json              # Hooks configuration (committed)
+│   ├── settings.local.json        # User overrides (gitignored)
+│   └── config.json                # Path & research configuration
 ├── files/
-│   ├── research_notes/        # Individual researcher outputs
-│   └── reports/               # Synthesis reports
-├── logs/                      # Session transcripts
-└── setup.py                   # Interactive setup script
+│   ├── research_notes/            # Individual researcher outputs
+│   └── reports/                   # Synthesis reports
+├── docs/
+│   ├── projects/                  # Planning outputs (v2.2.0)
+│   └── adrs/                      # Architecture Decision Records (v2.2.0)
+├── logs/                          # Session transcripts
+└── setup.py                       # Interactive setup script
 ```
 
 ### File & Directory Reference
@@ -339,9 +456,14 @@ Complete reference of all files and their roles:
 |----------------|---------|------|-------------|
 | **Core Skill Files** | | | |
 | `.claude/skills/multi-agent-researcher/SKILL.md` | Skill definition with `allowed-tools` constraint that enforces workflow | Skill Definition | View/Customize |
+| `.claude/skills/spec-workflow-orchestrator/SKILL.md` | Planning orchestrator (v2.2.0) | Skill Definition | View/Customize |
 | `.claude/agents/researcher.md` | Instructions for researcher agents (web research, note-taking) | Agent Definition | View/Customize |
 | `.claude/agents/report-writer.md` | Instructions for report-writer agent (synthesis, cross-referencing) | Agent Definition | View/Customize |
+| `.claude/agents/spec-analyst.md` | Requirements gathering (v2.2.0) | Agent Definition | View/Customize |
+| `.claude/agents/spec-architect.md` | System design (v2.2.0) | Agent Definition | View/Customize |
+| `.claude/agents/spec-planner.md` | Task breakdown (v2.2.0) | Agent Definition | View/Customize |
 | **Hook System (Enforcement & Tracking)** | | | |
+| `.claude/hooks/user-prompt-submit.py` | Universal skill activation (v2.2.0) | Hook Script | Advanced Only |
 | `.claude/hooks/post-tool-use-track-research.py` | Logs every tool call, identifies agents, enforces quality gates | Hook Script | Advanced Only |
 | `.claude/hooks/session-start.py` | Auto-creates directories, restores sessions, displays status | Hook Script | Advanced Only |
 | `.claude/settings.json` | Registers hooks with Claude Code (committed to repo) | Settings | Caution |
@@ -349,15 +471,18 @@ Complete reference of all files and their roles:
 | **Configuration & State** | | | |
 | `.claude/config.json` | Paths, logging settings, research parameters | Config | Customize |
 | `.claude/state/research-workflow-state.json` | Tracks current research session state (phases, outputs) | State | Auto-Generated |
-| `.claude/skills/skill-rules.json` | Trigger patterns for skill activation (documentation) | Config | View |
+| `.claude/skills/skill-rules.json` | Trigger patterns for skill activation | Config | View |
 | **Data Outputs** | | | |
 | `files/research_notes/*.md` | Individual researcher findings (one file per subtopic) | Research Data | Auto-Generated |
 | `files/reports/*.md` | Comprehensive synthesis reports (timestamped) | Final Reports | Auto-Generated |
+| `docs/projects/{slug}/*.md` | Planning deliverables (v2.2.0) | Planning Data | Auto-Generated |
+| `docs/adrs/*.md` | Architecture Decision Records (v2.2.0) | Planning Data | Auto-Generated |
 | **Logs & Audit Trail** | | | |
 | `logs/session_*_transcript.txt` | Human-readable session log with agent identification | Log | Auto-Generated |
 | `logs/session_*_tool_calls.jsonl` | Structured JSON log for programmatic analysis | Log | Auto-Generated |
 | **Utilities** | | | |
 | `setup.py` | Interactive configuration wizard for advanced customization | Setup Script | Run When Needed |
+| `.claude/utils/*.sh` | Production utilities for planning (v2.2.0) | Scripts | Run When Needed |
 
 **Key**:
 - **View**: Read to understand how system works
@@ -500,6 +625,7 @@ The hook system is the **foundation of enforcement and tracking**. Without hooks
 #### How Hooks Work
 
 Claude Code fires hooks at specific lifecycle events:
+- **UserPromptSubmit**: Before processing user prompt (v2.2.0)
 - **PostToolUse**: After every tool call (Read, Write, Task, WebSearch, etc.)
 - **SessionStart**: When Claude Code session begins
 
@@ -508,6 +634,12 @@ Our hooks are registered in `.claude/settings.json`:
 ```json
 {
   "hooks": {
+    "UserPromptSubmit": [{
+      "hooks": [{
+        "type": "command",
+        "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/user-prompt-submit.py\""
+      }]
+    }],
     "PostToolUse": [{
       "hooks": [{
         "type": "command",
@@ -523,6 +655,15 @@ Our hooks are registered in `.claude/settings.json`:
   }
 }
 ```
+
+#### UserPromptSubmit Hook (v2.2.0)
+
+**Runs BEFORE every user prompt is processed** to enforce skill activation.
+
+**Responsibilities**:
+1. Detects research triggers (37+ keywords, 15 patterns)
+2. Detects planning triggers (90+ keywords, 23 patterns)
+3. Injects enforcement reminders into Claude's context
 
 #### PostToolUse Hook (`post-tool-use-track-research.py`)
 
@@ -615,6 +756,10 @@ The **combination** of hooks and `allowed-tools` creates robust enforcement:
 
 ```
 User: "research quantum computing"
+    ↓
+UserPromptSubmit hook fires (v2.2.0)
+    → Detects research trigger
+    → Injects skill enforcement reminder
     ↓
 SessionStart hook fires
     → Creates directories

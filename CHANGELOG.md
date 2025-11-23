@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.0.0] - 2025-11-23
+## [2.2.0] - 2025-11-23
 
-### 🎉 Major Release: Spec-Workflow-Orchestrator Skill
+### 🎉 New Feature: Spec-Workflow-Orchestrator Skill
 
 This release introduces a complete **Planning Orchestration System** alongside the existing research capabilities, transforming the project into a dual-skill orchestration platform.
 
