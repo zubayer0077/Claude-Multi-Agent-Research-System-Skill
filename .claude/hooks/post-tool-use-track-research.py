@@ -63,6 +63,28 @@ def main():
         print(f"Failed to log tool call: {e}", file=sys.stderr)
         # Continue execution even if logging fails
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # SKILL INVOCATION TRACKING (Non-Destructive Extension)
+    # ═══════════════════════════════════════════════════════════════════════════
+    if tool_name == 'Skill':
+        skill_name = tool_input.get('skill')
+        if skill_name:
+            try:
+                timestamp = session_logger.datetime.now(session_logger.datetime.UTC).isoformat()
+                current_skill = state_manager.get_current_skill()
+
+                # Check if re-invocation
+                if current_skill and current_skill.get('name') == skill_name and not current_skill.get('endTime'):
+                    invocation_num = current_skill.get('invocationNumber', 1) + 1
+                    print(f"🔄 SKILL RE-INVOKED: {skill_name} (invocation #{invocation_num})", flush=True)
+                else:
+                    print(f"🎯 SKILL START: {skill_name} (invocation #1)", flush=True)
+
+                # This handles both new and re-invocation
+                state_manager.set_current_skill(skill_name, timestamp)
+            except Exception as e:
+                print(f"Failed to track skill invocation: {e}", file=sys.stderr)
+
     # Early exit for non-Write operations (rest of hook is Write-specific tracking)
     if tool_name != 'Write':
         sys.exit(0)

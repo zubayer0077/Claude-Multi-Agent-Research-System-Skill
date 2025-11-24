@@ -263,6 +263,27 @@ def main():
     # Step 2: Initialize session logging
     initialize_session_logging()
 
+    # Step 2.5: Skill crash recovery (check for orphaned skills)
+    try:
+        current_skill = state_manager.get_current_skill()
+        if current_skill and not current_skill.get('endTime'):
+            # Found active skill without end time - likely from crash/abrupt termination
+            timestamp = datetime.now(datetime.UTC).isoformat()
+            skill_name = current_skill['name']
+            invocation = current_skill.get('invocationNumber', 1)
+            source = input_data.get('source', 'unknown')
+
+            # End it with CrashRecovery trigger
+            ended_skill = state_manager.end_current_skill(timestamp, 'CrashRecovery')
+
+            if ended_skill:
+                duration = ended_skill.get('duration', 'unknown')
+                print(f"🔧 CRASH RECOVERY: {skill_name} ended (invocation #{invocation}, duration: {duration}, source: {source})")
+                print(f"   Previous session did not end cleanly. State recovered.\n")
+    except Exception as e:
+        # Don't fail entire hook if crash recovery fails
+        print(f"⚠️  Skill crash recovery failed: {e}", file=sys.stderr)
+
     # Step 3: Check for active research session
     resumption_context = check_research_session()
 

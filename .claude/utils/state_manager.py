@@ -150,3 +150,148 @@ def validate_quality_gate(state: Dict[str, Any], session_id: str, gate: str) -> 
             return False
 
     return False
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SKILL TRACKING (Non-Destructive Extension)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def calculate_duration(start_time: str, end_time: str) -> str:
+    """Calculate duration between two ISO timestamps"""
+    try:
+        start = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+        end = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        delta = end - start
+
+        minutes = int(delta.total_seconds() / 60)
+        seconds = int(delta.total_seconds() % 60)
+
+        if minutes > 0:
+            return f"{minutes}m {seconds}s"
+        else:
+            return f"{seconds}s"
+    except:
+        return "unknown"
+
+
+def get_current_skill() -> Optional[Dict[str, Any]]:
+    """Get currently active skill (if any)"""
+    state = load_state()
+    return state.get('currentSkill')
+
+
+def set_current_skill(skill_name: str, start_time: str) -> None:
+    """
+    Start tracking a new skill invocation.
+    If same skill already active, ends it first and increments invocation number.
+
+    Args:
+        skill_name: Name of the skill (e.g., 'multi-agent-researcher')
+        start_time: ISO timestamp when skill started
+    """
+    state = load_state()
+    current = state.get('currentSkill')
+
+    # Calculate invocation number
+    if current and current.get('name') == skill_name:
+        # Same skill re-invoked - end previous, increment counter
+        invocation_number = current.get('invocationNumber', 1) + 1
+
+        # End previous invocation if not already ended
+        if not current.get('endTime'):
+            current['endTime'] = start_time  # End at exact moment new one starts
+            current['trigger'] = 'ReInvocation'
+            current['duration'] = calculate_duration(
+                current['startTime'],
+                current['endTime']
+            )
+
+        # Move to history
+        if 'skillHistory' not in state:
+            state['skillHistory'] = []
+        state['skillHistory'].append(current)
+
+    else:
+        # Different skill or first invocation
+        invocation_number = 1
+
+        # End any active skill first
+        if current and not current.get('endTime'):
+            current['endTime'] = start_time
+            current['trigger'] = 'NewSkill'
+            current['duration'] = calculate_duration(
+                current['startTime'],
+                current['endTime']
+            )
+            if 'skillHistory' not in state:
+                state['skillHistory'] = []
+            state['skillHistory'].append(current)
+
+    # Set new current skill
+    state['currentSkill'] = {
+        'name': skill_name,
+        'startTime': start_time,
+        'endTime': None,
+        'invocationNumber': invocation_number
+    }
+
+    save_state(state)
+
+
+def end_current_skill(end_time: str, trigger: str) -> Optional[Dict[str, Any]]:
+    """
+    End the currently active skill and move to history.
+
+    Args:
+        end_time: ISO timestamp when skill ended
+        trigger: What caused the end (Stop, SessionEnd, ReInvocation, etc.)
+
+    Returns:
+        The ended skill entry, or None if no active skill
+    """
+    state = load_state()
+    current = state.get('currentSkill')
+
+    if not current:
+        return None
+
+    # Don't override if already ended
+    if current.get('endTime'):
+        return current
+
+    # End it
+    current['endTime'] = end_time
+    current['trigger'] = trigger
+    current['duration'] = calculate_duration(
+        current['startTime'],
+        current['endTime']
+    )
+
+    # Move to history
+    if 'skillHistory' not in state:
+        state['skillHistory'] = []
+    state['skillHistory'].append(current)
+
+    # Clear current
+    state['currentSkill'] = None
+
+    save_state(state)
+    return current
+
+
+def get_skill_invocation_count(skill_name: str) -> int:
+    """Get total number of times a skill has been invoked (history + current)"""
+    state = load_state()
+    count = 0
+
+    # Count in history
+    for entry in state.get('skillHistory', []):
+        if entry.get('name') == skill_name:
+            count += 1
+
+    # Count current
+    current = state.get('currentSkill')
+    if current and current.get('name') == skill_name:
+        count += 1
+
+    return count

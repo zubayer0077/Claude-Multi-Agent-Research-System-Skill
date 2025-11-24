@@ -72,11 +72,22 @@ Started: {datetime.now().isoformat()}
 def identify_agent(tool_name: str, tool_input: Dict[str, Any], state: Optional[Dict] = None) -> str:
     """Identify agent type from context"""
 
-    # Priority 1: Environment variable (if SDK provides it)
+    # Priority 1: Check active skill (if skill is orchestrating)
+    if state:
+        current_skill = state.get('currentSkill')
+        # Only if skill is active (no endTime)
+        if current_skill and not current_skill.get('endTime'):
+            skill_name = current_skill.get('name')
+            if skill_name == 'multi-agent-researcher':
+                return 'research-orchestrator'
+            elif skill_name == 'spec-workflow-orchestrator':
+                return 'spec-orchestrator'
+
+    # Priority 2: Environment variable (if SDK provides it)
     if os.environ.get('CLAUDE_AGENT_TYPE'):
         return os.environ['CLAUDE_AGENT_TYPE']
 
-    # Priority 2: Detect from file paths (use configured paths)
+    # Priority 3: Detect from file paths (use configured paths)
     if tool_name == 'Write' and tool_input.get('file_path'):
         file_path = tool_input['file_path']
         research_notes_dir = config_loader.get_path('research_notes')
@@ -87,11 +98,11 @@ def identify_agent(tool_name: str, tool_input: Dict[str, Any], state: Optional[D
         if file_path.startswith(reports_dir + '/'):
             return 'report-writer'
 
-    # Priority 3: Detect from Task tool (spawning subagents)
+    # Priority 4: Detect from Task tool (spawning subagents)
     if tool_name == 'Task' and tool_input.get('subagent_type'):
         return 'orchestrator'
 
-    # Priority 4: Check if we're in an active research session
+    # Priority 5: Check if we're in an active research session
     if state and state.get('currentResearch'):
         sessions = state.get('sessions', [])
         session = next((s for s in sessions if s['id'] == state['currentResearch']), None)
