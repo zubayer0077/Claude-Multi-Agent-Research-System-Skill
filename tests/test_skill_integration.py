@@ -39,9 +39,13 @@ CYAN = '\033[96m'
 RESET = '\033[0m'
 BOLD = '\033[1m'
 
+# Path configuration (portable - works from any directory)
+TESTS_DIR = Path(__file__).parent.resolve()
+PROJECT_ROOT = TESTS_DIR.parent
+
 # Test configuration
 TEST_PROJECT_SLUG = "integration-test-hello-world"
-TEST_PROJECT_DIR = Path("tests/fixtures/generated") / TEST_PROJECT_SLUG
+TEST_PROJECT_DIR = TESTS_DIR / "fixtures" / "generated" / TEST_PROJECT_SLUG
 
 # Minimal test prompt for quick validation
 QUICK_TEST_PROMPT = """
@@ -92,7 +96,7 @@ def create_project_structure():
 
 def read_agent_definition(agent_name: str) -> str:
     """Read agent definition from .claude/agents/"""
-    agent_path = Path(f".claude/agents/{agent_name}.md")
+    agent_path = PROJECT_ROOT / ".claude" / "agents" / f"{agent_name}.md"
     if not agent_path.exists():
         raise FileNotFoundError(f"Agent definition not found: {agent_path}")
     return agent_path.read_text()

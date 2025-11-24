@@ -190,10 +190,10 @@ See `.claude/skills/spec-workflow-orchestrator/SKILL.md`
 ```markdown
 # NEVER do this
 subagent_type: "spec-analyst"
-prompt: "Save to: /Users/ahmedmaged/ai_storage/projects/.../docs/planning/requirements.md"
+prompt: "Save to: /Users/username/projects/.../docs/planning/requirements.md"
 ```
 
-**Exception**: Archived historical planning documents may contain absolute paths as historical record of commands executed.
+**Note**: Always use relative paths from project root, not absolute paths.
 
 ---
 

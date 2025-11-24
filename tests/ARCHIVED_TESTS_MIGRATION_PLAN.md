@@ -2,7 +2,7 @@
 
 **Created**: 2024-11-24
 **Status**: ✅ COMPLETED (2024-11-24)
-**Source**: `/Users/ahmedmaged/ai_storage/projects_docs_archives/Claude-Multi-Agent-Research-System-Skill_archive_20251120-113041/docs/testing/`
+**Source**: Project archive from 2025-11-20 (docs/testing/ directory)
 
 ---
 
