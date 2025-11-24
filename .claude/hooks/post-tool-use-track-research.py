@@ -189,11 +189,11 @@ the specialized report-writer agent, not the orchestrator.
 **Remediation**:
 1. Verify multi-agent-researcher skill v2.0.0+ is active
 2. Confirm allowed-tools excludes Write tool
-3. Check .claude/state/research-workflow-state.json for details
+3. Check logs/state/research-workflow-state.json for details
 4. Review quality gate validation in state.qualityGates.synthesis
 
 **Audit Trail**:
-All details logged to: .claude/state/research-workflow-state.json
+All details logged to: logs/state/research-workflow-state.json
 Session ID: {session['id']}
 Violation timestamp: {session_logger.datetime.now().isoformat()}
 

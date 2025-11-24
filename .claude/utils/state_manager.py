@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 
 
-STATE_FILE = Path('.claude/state/research-workflow-state.json')
+STATE_FILE = Path('logs/state/research-workflow-state.json')
 
 
 def load_state() -> Dict[str, Any]:

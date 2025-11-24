@@ -517,7 +517,7 @@ Complete reference of all files and their roles:
 | `.claude/settings.local.json` | User-specific overrides (gitignored, optional) | Settings | Optional |
 | **Configuration & State** | | | |
 | `.claude/config.json` | Paths, logging settings, research parameters | Config | Customize |
-| `.claude/state/research-workflow-state.json` | Tracks current research session state (phases, outputs) | State | Auto-Generated |
+| `logs/state/research-workflow-state.json` | Tracks current research session state (phases, outputs) | State | Auto-Generated |
 | `.claude/skills/skill-rules.json` | Trigger patterns for skill activation | Config | View |
 | **Data Outputs** | | | |
 | `files/research_notes/*.md` | Individual researcher findings (one file per subtopic) | Research Data | Auto-Generated |
@@ -549,7 +549,7 @@ Configured in `.claude/config.json`:
     "research_notes": "files/research_notes",
     "reports": "files/reports",
     "logs": "logs",
-    "state": ".claude/state"
+    "state": "logs/state"
   },
   "logging": {
     "enabled": true,
@@ -663,7 +663,7 @@ Tracks workflow progression:
 - Report-writer spawned?
 - Synthesis complete?
 
-Stored in `.claude/state/research-workflow-state.json`.
+Stored in `logs/state/research-workflow-state.json`.
 
 ### Hooks Architecture
 
@@ -743,7 +743,7 @@ Our hooks are registered in `.claude/settings.json`:
    ```
 
 4. **Phase Tracking**
-   - Updates `.claude/state/research-workflow-state.json`
+   - Updates `logs/state/research-workflow-state.json`
    - Tracks: decomposition → research → synthesis → delivery
    - Records outputs (research note paths, report path)
 
@@ -767,7 +767,7 @@ Our hooks are registered in `.claude/settings.json`:
    create_directory("files/research_notes/")
    create_directory("files/reports/")
    create_directory("logs/")
-   create_directory(".claude/state/")
+   create_directory("logs/state/")
    ```
 
 2. **Session Initialization**
@@ -776,7 +776,7 @@ Our hooks are registered in `.claude/settings.json`:
    - Displays setup status to user
 
 3. **Session Restoration** (if previous session was interrupted)
-   - Reads `.claude/state/research-workflow-state.json`
+   - Reads `logs/state/research-workflow-state.json`
    - Checks if research was incomplete
    - Offers to resume or start fresh
 

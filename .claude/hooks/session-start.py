@@ -240,7 +240,7 @@ def build_resumption_context(session: dict) -> str:
 
 ### State File Location
 
-Full session details available at: `.claude/state/research-workflow-state.json`
+Full session details available at: `logs/state/research-workflow-state.json`
 
 ---
 
