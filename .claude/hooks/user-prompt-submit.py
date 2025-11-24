@@ -140,33 +140,6 @@ def load_skill_rules() -> dict:
         return {}
 
 
-def check_keywords(prompt: str, keywords: list) -> list:
-    """Check if any keywords are present in the prompt (case-insensitive)"""
-    prompt_lower = prompt.lower()
-    matched = []
-
-    for keyword in keywords:
-        if keyword.lower() in prompt_lower:
-            matched.append(keyword)
-
-    return matched
-
-
-def check_patterns(prompt: str, patterns: list) -> list:
-    """Check if any regex patterns match the prompt (case-insensitive)"""
-    matched = []
-
-    for pattern in patterns:
-        try:
-            if re.search(pattern, prompt, re.IGNORECASE):
-                matched.append(pattern)
-        except re.error:
-            # Skip invalid regex patterns
-            continue
-
-    return matched
-
-
 # =============================================================================
 # HELPER FUNCTIONS FOR COMPOUND DETECTION
 # =============================================================================
@@ -247,10 +220,10 @@ def is_agent_noun_only(prompt: str, keyword: str) -> bool:
 
 
 # =============================================================================
-# CORE COMPOUND DETECTION FUNCTIONS (v2 - new implementation)
+# CORE COMPOUND DETECTION FUNCTIONS
 # =============================================================================
 
-def get_signal_strength_v2(prompt: str, skill_config: dict, skill_type: str = None) -> dict:
+def get_signal_strength(prompt: str, skill_config: dict, skill_type: str = None) -> dict:
     """
     Analyze signal strength for a skill based on keyword vs pattern matching.
 
@@ -345,7 +318,7 @@ def get_signal_strength_v2(prompt: str, skill_config: dict, skill_type: str = No
         }
 
 
-def check_compound_patterns_v2(prompt: str) -> dict:
+def check_compound_patterns(prompt: str) -> dict:
     """
     Check if prompt matches known compound patterns.
 
@@ -422,12 +395,12 @@ def analyze_request(prompt: str, skill_rules: dict) -> dict:
     skills = skill_rules.get('skills', {})
 
     # Get signal strength for each skill
-    research_signal = get_signal_strength_v2(
+    research_signal = get_signal_strength(
         prompt,
         skills.get('multi-agent-researcher', {}),
         skill_type='research'
     )
-    planning_signal = get_signal_strength_v2(
+    planning_signal = get_signal_strength(
         prompt,
         skills.get('spec-workflow-orchestrator', {}),
         skill_type='planning'
@@ -461,7 +434,7 @@ def analyze_request(prompt: str, skill_rules: dict) -> dict:
         return result
 
     # Case 2: Both skills have signals - check compound patterns
-    compound_result = check_compound_patterns_v2(prompt)
+    compound_result = check_compound_patterns(prompt)
     result['compound_type'] = compound_result['type']
 
     if DEBUG:
@@ -567,38 +540,8 @@ DO NOT invoke ANY skill until user responds.
 
 
 # =============================================================================
-# ORIGINAL FUNCTIONS (kept for backward compatibility during transition)
+# ENFORCEMENT MESSAGE BUILDERS
 # =============================================================================
-
-def detect_skill_triggers(prompt: str, skill_rules: dict) -> dict:
-    """
-    Detect which skills should be triggered based on the prompt
-
-    Returns: {
-        'multi-agent-researcher': {'keywords': [...], 'patterns': [...]},
-        'spec-workflow-orchestrator': {'keywords': [...], 'patterns': [...]}
-    }
-    """
-    triggers = {}
-
-    for skill_name, skill_config in skill_rules.get('skills', {}).items():
-        prompt_triggers = skill_config.get('promptTriggers', {})
-        keywords = prompt_triggers.get('keywords', [])
-        patterns = prompt_triggers.get('intentPatterns', [])
-
-        matched_keywords = check_keywords(prompt, keywords)
-        matched_patterns = check_patterns(prompt, patterns)
-
-        if matched_keywords or matched_patterns:
-            triggers[skill_name] = {
-                'keywords': matched_keywords,
-                'patterns': matched_patterns,
-                'enforcement': skill_config.get('enforcement', 'recommend'),
-                'priority': skill_config.get('priority', 'medium')
-            }
-
-    return triggers
-
 
 def build_research_enforcement_message(triggers: dict) -> str:
     """Build enforcement message for multi-agent-researcher skill"""
