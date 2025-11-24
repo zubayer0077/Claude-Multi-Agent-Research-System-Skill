@@ -53,9 +53,9 @@ output = spawn_spec_analyst("Plan a task management app")
 **What**: Utilities, state management, hooks, file operations
 
 **Current Coverage**:
-- `tests/e2e_hook_test.py` - Hook keyword detection, compound logic (148 tests)
-- `tests/test_production_implementation.sh` - State, archive, restore, version (10 tests)
-- `tests/test_interactive_decision.sh` - Project detection, user choices (8 tests)
+- `tests/common/e2e_hook_test.py` - Hook keyword detection, compound logic (148 tests)
+- `tests/common/test_production_implementation.sh` - State, archive, restore, version (10 tests)
+- `tests/spec-workflow/test_interactive_decision.sh` - Project detection, user choices (8 tests)
 
 **Characteristics**:
 - Deterministic inputs/outputs
@@ -68,8 +68,8 @@ output = spawn_spec_analyst("Plan a task management app")
 **What**: Skill triggers correctly, agents discovered at expected paths
 
 **Current Coverage**:
-- `tests/e2e_hook_test.py` - Verifies hook produces correct system messages
-- `tests/test_agent_structure.sh` (NEW) - Verifies agent files exist
+- `tests/common/e2e_hook_test.py` - Verifies hook produces correct system messages
+- `tests/common/test_agent_structure.sh` - Verifies agent files exist
 
 **What CAN be automated**:
 - File existence checks
@@ -85,7 +85,7 @@ output = spawn_spec_analyst("Plan a task management app")
 **What**: Content quality, technical accuracy, actionability, completeness
 
 **Current Coverage**:
-- `tests/manual/` - Documented test executions with human evaluation
+- `tests/spec-workflow/manual/` - Documented test executions with human evaluation
 - Quality gate in SKILL.md - Runs automatically every workflow execution
 
 **Why it CANNOT be automated**:
@@ -130,34 +130,56 @@ Manual test documentation captures the evidence of these evaluations.
 
 ```
 tests/
-├── e2e_hook_test.py              # Layer 1: Hook behavior (148 tests)
-├── test_production_implementation.sh  # Layer 1: Utilities (~10 tests)
-├── test_interactive_decision.sh  # Layer 1: Interactive flow (~8 tests)
-├── test_agent_structure.sh       # Layer 2: Agent discovery (22 tests)
-├── test_deliverable_structure.sh # Layer 2: Output format (20 tests)
-├── test_adr_format.py            # Layer 2: ADR compliance (15 tests)
-├── test_skill_integration.py     # Integration: API-based E2E workflow
-├── fixtures/
-│   └── generated/                # API-generated test outputs
-│       └── integration-test-hello-world/
-│           ├── planning/         # requirements.md, architecture.md, tasks.md
-│           └── adrs/             # ADR-001 through ADR-004
-├── TEST_ARCHITECTURE.md          # This file
-├── ARCHIVED_TESTS_MIGRATION_PLAN.md  # Migration tracking
-└── manual/                       # Layer 3: Human evaluation evidence
-    ├── README.md                 # How to run manual tests
-    ├── skill-execution-tests.md  # Evidence: Agent spawning, quality gate
-    ├── edge-case-tests.md        # Evidence: Iteration loop, missing files
-    └── integration-test-report.md # Evidence: Full workflow execution
+├── common/                              # Tests for BOTH skills
+│   ├── e2e_hook_test.py                # Hook behavior (148 tests)
+│   ├── test_agent_structure.sh         # Agent discovery (22 tests)
+│   └── test_production_implementation.sh  # Utilities (~10 tests)
+│
+├── research-skill/                      # Research skill tests (31 files)
+│   ├── README.md                       # Index and overview
+│   ├── test-scripts/                   # Hook router test queries (32 tests)
+│   │   ├── phase1-test-queries.sh
+│   │   ├── production_validation.sh
+│   │   ├── production_deploy_standard.sh
+│   │   └── production_cleanup_inplace.sh
+│   ├── phase-results/                  # Test execution results
+│   │   ├── PHASE1_TEST_RESULTS.md
+│   │   ├── PHASE2_TEST_RESULTS.md
+│   │   ├── PHASE3_TEST_RESULTS.md
+│   │   ├── PHASE4_TEST_RESULTS.md
+│   │   ├── PHASE5_INTEGRATION_RESULTS.md
+│   │   ├── PHASE6_TESTING_COMPLETE.md
+│   │   └── TIER3_TEST_FINDINGS.md
+│   ├── design-docs/                    # Implementation docs
+│   ├── lessons-learned/                # 30+ testing lessons
+│   └── analysis/                       # Failure analysis, bug fixes
+│
+├── spec-workflow/                       # Spec workflow tests
+│   ├── test_skill_integration.py       # API-based E2E (main test)
+│   ├── test_adr_format.py              # ADR compliance (15 tests)
+│   ├── test_deliverable_structure.sh   # Output format (20 tests)
+│   ├── test_interactive_decision.sh    # Interactive flow (~8 tests)
+│   ├── manual/                         # Human evaluation evidence
+│   │   ├── README.md
+│   │   ├── skill-execution-tests.md
+│   │   ├── edge-case-tests.md
+│   │   └── integration-test-report.md
+│   └── fixtures/                       # Test outputs
+│       └── generated/
+│           └── integration-test-hello-world/
+│
+├── TEST_ARCHITECTURE.md                 # This file
+└── ARCHIVED_TESTS_MIGRATION_PLAN.md
 ```
 
-**Total Automated Tests**: ~223 tests across 6 test files
+**Total Automated Tests**: ~223 tests across 7 test files
+**Structure**: Organized by skill with common tests shared
 
 ---
 
 ## Manual Test Documentation Purpose
 
-The `tests/manual/` directory contains **test evidence**, not missing automation.
+The `tests/spec-workflow/manual/` directory contains **test evidence**, not missing automation.
 
 ### What These Documents Capture
 
@@ -211,7 +233,7 @@ test_agent_has_tools() {
 
 DO NOT try to automate. Instead:
 1. Run the skill manually with a test prompt
-2. Document the execution in `tests/manual/`
+2. Document the execution in `tests/spec-workflow/manual/`
 3. Record the quality gate score and rationale
 
 ---
@@ -271,16 +293,70 @@ test_adr_count() {
 
 ## Summary
 
-| Layer | Automation | Tests | Approach |
+| Layer | Automation | Tests | Location |
 |-------|------------|-------|----------|
-| Infrastructure | Full | `e2e_hook_test.py` (148), `test_production_*.sh` (~10), `test_interactive_*.sh` (~8) | Traditional unit/integration |
-| Behavior | Full | `test_agent_structure.sh` (22), `test_deliverable_structure.sh` (20), `test_adr_format.py` (15) | Structural validation |
-| Integration | API-based | `test_skill_integration.py` | Direct API calls, E2E workflow |
-| Quality | Manual | `tests/manual/*.md` | Human evaluation evidence |
+| Infrastructure | Full | `e2e_hook_test.py` (148), `test_production_*.sh` (~10) | `common/` |
+| Behavior | Full | `test_agent_structure.sh` (22), `test_deliverable_structure.sh` (20), `test_adr_format.py` (15) | `common/`, `spec-workflow/` |
+| Integration | API-based | `test_skill_integration.py`, `test_interactive_decision.sh` | `spec-workflow/` |
+| Quality | Manual | `manual/*.md` | `spec-workflow/manual/` |
 
-**Total Automated Tests**: ~223 across 6 test files
+**Total Automated Tests**: ~223 across 7 test files
 
 **Key Insights**:
 - The quality gate in SKILL.md IS the test framework for Layer 3
 - `test_skill_integration.py` enables automated E2E testing via Anthropic API
 - Structural tests validate format without asserting content quality
+
+---
+
+## Research Skill Tests
+
+The `tests/research-skill/` directory contains test documentation for the `multi-agent-researcher` skill (from November 2025 development).
+
+### Purpose
+
+These tests serve as:
+1. **Reference** for implementing research skill tests in the current project
+2. **Lessons Learned** - 30+ documented lessons applicable to any agent system
+3. **Test Patterns** - Reusable patterns for hook routing, tier testing, quality gates
+
+### Content Summary
+
+| Category | Files | Key Content |
+|----------|-------|-------------|
+| Phase Results | 7 | PHASE1-6 test outcomes, all 5 tiers validated |
+| Design Docs | 9 | Implementation plan, design decisions, conversion maps |
+| Test Scripts | 4 | 32 hook router queries, production validation |
+| Lessons | 2 | 30+ lessons from development |
+| Analysis | 8 | Failure analysis, bug fixes, empirical evidence |
+
+### Key Lessons (Applicable to Current Project)
+
+From the archived lessons learned:
+
+1. **Test automation AFTER restart** - Fresh session validates CLAUDE.md rules
+2. **Comprehensive test evidence docs** - 200-400 line reports prove completion
+3. **User questions reveal gaps** - "Why isn't X working?" exposes missing infra
+4. **Clean historical broken data** - When fixing bugs, clean old artifacts
+5. **spawned_by matters** - Track which orchestrator spawned each agent
+
+### Comparison: Research vs Spec-Workflow Tests
+
+| Aspect | Research Skill | Spec-Workflow |
+|--------|----------------|---------------|
+| Location | `tests/research-skill/` | `tests/spec-workflow/` |
+| Hook Router Tests | ✅ 32 queries | ❌ Not implemented |
+| Tier/Agent Tests | ✅ 5 tiers validated | ✅ 3 agents validated |
+| Quality Gate Tests | ✅ Documented | ✅ Embedded in SKILL.md |
+| Integration Tests | ✅ Phase 5-6 | ✅ test_skill_integration.py |
+| Failure Analysis | ✅ Extensive | ⚠️ Limited |
+| Lessons Learned | ✅ 30+ documented | ⚠️ To be documented |
+
+### Next Steps
+
+To achieve parity between research and planning skill testing:
+
+1. Implement hook router tests for planning skill triggers
+2. Document tier-equivalent tests (analyst → architect → planner flow)
+3. Create failure analysis documentation as issues are found
+4. Extract lessons learned from planning skill development

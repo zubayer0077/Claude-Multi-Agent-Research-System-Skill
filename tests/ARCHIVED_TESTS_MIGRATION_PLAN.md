@@ -27,18 +27,18 @@ The archived test documentation is **test evidence for human evaluation** (Layer
 
 ### Phase 1: Preserve Manual Test Evidence (LOW EFFORT)
 
-**Action**: Move archived docs to `tests/manual/` as reference documentation.
+**Action**: Move archived docs to `tests/spec-workflow/manual/` as reference documentation.
 
 | Source File | Destination | Modification |
 |-------------|-------------|--------------|
-| `step-5.2-execution-test-results.md` | `tests/manual/skill-execution-tests.md` | Update paths to current structure |
-| `step-5.3-edge-case-testing-summary.md` | `tests/manual/edge-case-tests.md` | Update paths to current structure |
-| `phase-3-integration-test-report.md` | `tests/manual/integration-test-report.md` | Update paths to current structure |
-| `edge-case-iteration-loop-test.md` | `tests/manual/iteration-loop-details.md` | None |
-| `edge-case-missing-files-test.md` | `tests/manual/missing-files-details.md` | None |
-| `edge-case-progress-tracking-test.md` | `tests/manual/progress-tracking-details.md` | None |
+| `step-5.2-execution-test-results.md` | `tests/spec-workflow/manual/skill-execution-tests.md` | Update paths to current structure |
+| `step-5.3-edge-case-testing-summary.md` | `tests/spec-workflow/manual/edge-case-tests.md` | Update paths to current structure |
+| `phase-3-integration-test-report.md` | `tests/spec-workflow/manual/integration-test-report.md` | Update paths to current structure |
+| `edge-case-iteration-loop-test.md` | `tests/spec-workflow/manual/iteration-loop-details.md` | None |
+| `edge-case-missing-files-test.md` | `tests/spec-workflow/manual/missing-files-details.md` | None |
+| `edge-case-progress-tracking-test.md` | `tests/spec-workflow/manual/progress-tracking-details.md` | None |
 
-**New file to create**: `tests/manual/README.md` - Explains purpose and how to use
+**New file to create**: `tests/spec-workflow/manual/README.md` - Explains purpose and how to use
 
 ---
 
@@ -48,7 +48,7 @@ These are NEW tests that validate automatable aspects not currently covered.
 
 #### 2.1 Agent Structure Validation
 
-**File**: `tests/test_agent_structure.sh`
+**File**: `tests/common/test_agent_structure.sh`
 
 **Purpose**: Verify agents exist and have valid structure (Layer 2 - Behavior)
 
@@ -89,7 +89,7 @@ test_agents_have_tools_frontmatter() {
 
 #### 2.2 Deliverable Structure Validation
 
-**File**: `tests/test_deliverable_structure.sh`
+**File**: `tests/spec-workflow/test_deliverable_structure.sh`
 
 **Purpose**: After a skill run, verify output files have required sections
 
@@ -148,7 +148,7 @@ test_tasks_has_phases() {
 
 #### 2.3 ADR Format Validation
 
-**File**: `tests/test_adr_format.py`
+**File**: `tests/spec-workflow/test_adr_format.py`
 
 **Purpose**: Validate ADR files follow the expected format
 
@@ -213,7 +213,7 @@ def test_all_adrs():
 
 ### Phase 3: Create Manual Test README (LOW EFFORT)
 
-**File**: `tests/manual/README.md`
+**File**: `tests/spec-workflow/manual/README.md`
 
 ```markdown
 # Manual Integration Tests
@@ -300,29 +300,29 @@ def test_exact_match():
 
 | Phase | Effort | Impact | Priority | Status |
 |-------|--------|--------|----------|--------|
-| 1. Move archived docs to `tests/manual/` | Low | High | P0 | ✅ DONE |
-| 2.1 Create `test_agent_structure.sh` | Low | Medium | P1 | ✅ DONE |
-| 2.2 Create `test_deliverable_structure.sh` | Medium | Medium | P1 | ✅ DONE |
-| 2.3 Create `test_adr_format.py` | Medium | Low | P2 | ✅ DONE |
-| 2.4 Create `test_skill_integration.py` | Medium | High | P1 | ✅ DONE |
-| 3. Create `tests/manual/README.md` | Low | High | P0 | ✅ DONE |
+| 1. Move archived docs to `tests/spec-workflow/manual/` | Low | High | P0 | ✅ DONE |
+| 2.1 Create `tests/common/test_agent_structure.sh` | Low | Medium | P1 | ✅ DONE |
+| 2.2 Create `tests/spec-workflow/test_deliverable_structure.sh` | Medium | Medium | P1 | ✅ DONE |
+| 2.3 Create `tests/spec-workflow/test_adr_format.py` | Medium | Low | P2 | ✅ DONE |
+| 2.4 Create `tests/spec-workflow/test_skill_integration.py` | Medium | High | P1 | ✅ DONE |
+| 3. Create `tests/spec-workflow/manual/README.md` | Low | High | P0 | ✅ DONE |
 
 ### Phase 2.4: API-Based Integration Test (Added)
 
-**File**: `tests/test_skill_integration.py`
+**File**: `tests/spec-workflow/test_skill_integration.py`
 
 **Purpose**: Automate end-to-end skill testing without human intervention
 
 - Calls Anthropic API directly with pre-prepared prompts
 - Chains outputs: spec-analyst → spec-architect → spec-planner
-- Outputs to `tests/fixtures/generated/{project-slug}/`
+- Outputs to `tests/spec-workflow/fixtures/generated/{project-slug}/`
 - Validates structure and content patterns
 - Supports `--dry-run`, `--quick`, `--model` options
 
 **Usage**:
 ```bash
-python3 tests/test_skill_integration.py --dry-run   # Test without API
-python3 tests/test_skill_integration.py --quick     # Fast test with API key
+python3 tests/spec-workflow/test_skill_integration.py --dry-run   # Test without API
+python3 tests/spec-workflow/test_skill_integration.py --quick     # Fast test with API key
 ```
 
 ---
@@ -331,14 +331,14 @@ python3 tests/test_skill_integration.py --quick     # Fast test with API key
 
 | Layer | Test Type | Files | Tests |
 |-------|-----------|-------|-------|
-| Infrastructure | Automated | `e2e_hook_test.py` | 148 |
-| Infrastructure | Automated | `test_production_implementation.sh` | ~10 |
-| Infrastructure | Automated | `test_interactive_decision.sh` | ~8 |
-| Behavior | Automated | `test_agent_structure.sh` | 22 |
-| Behavior | Automated | `test_deliverable_structure.sh` | 20 |
-| Behavior | Automated | `test_adr_format.py` | 15 |
-| Integration | API-based | `test_skill_integration.py` | E2E workflow |
-| Quality | Manual | `tests/manual/*.md` | Human evaluation |
+| Infrastructure | Automated | `tests/common/e2e_hook_test.py` | 148 |
+| Infrastructure | Automated | `tests/common/test_production_implementation.sh` | ~10 |
+| Infrastructure | Automated | `tests/spec-workflow/test_interactive_decision.sh` | ~8 |
+| Behavior | Automated | `tests/common/test_agent_structure.sh` | 22 |
+| Behavior | Automated | `tests/spec-workflow/test_deliverable_structure.sh` | 20 |
+| Behavior | Automated | `tests/spec-workflow/test_adr_format.py` | 15 |
+| Integration | API-based | `tests/spec-workflow/test_skill_integration.py` | E2E workflow |
+| Quality | Manual | `tests/spec-workflow/manual/*.md` | Human evaluation |
 
 **Total Automated Tests**: ~223 tests
 **Integration Test**: Full workflow automation via API
